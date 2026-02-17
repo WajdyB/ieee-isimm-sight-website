@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react"
 import Image from "next/image"
+import Link from "next/link"
 import { Target, Eye, Heart, Users, Lightbulb, Globe } from "lucide-react"
 import { aboutImages } from "@/lib/images"
 
@@ -295,9 +296,14 @@ export default function AboutPage() {
               solutions that address global challenges and create positive impact for communities worldwide.
             </p>
             <div className="flex justify-center">
-              <button className="bg-white text-red-700 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors duration-200 hover:scale-105 transform transition-all">
+              <Link 
+                href="https://docs.google.com/forms/d/e/1FAIpQLSdTniKT8Ex2SywG5WxtNNolIkvKwgYA-szdxpXLBAOSl1qqPA/viewform"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-white text-red-700 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors duration-200 hover:scale-105 transform transition-all inline-block"
+              >
                 Get Involved
-              </button>
+              </Link>
             </div>
           </div>
         </div>
