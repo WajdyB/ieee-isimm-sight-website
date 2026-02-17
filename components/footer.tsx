@@ -40,9 +40,9 @@ const Footer = () => {
         <div className="grid md:grid-cols-4 gap-8">
           {/* Logo and Description */}
           <div className="md:col-span-2">
-            <div className="flex items-center mb-4">
+            <Link href="/" className="flex items-center mb-4 w-fit">
               <Logo type="wie" className="h-12 w-auto" />
-            </div>
+            </Link>
             <p className="text-gray-300 mb-6 leading-relaxed">
               Special Interest Group in Humanitarian Technology (SIGHT) of IEEE ISIMM Student Branch. Advancing humanitarian technology 
               through innovation, collaboration, and sustainable development solutions.
@@ -106,9 +106,9 @@ const Footer = () => {
             </p>
             <div className="flex items-center mt-4 md:mt-0">
               <span className="text-gray-400 text-sm mr-2">Powered by</span>
-              <div className="flex items-center">
+              <Link href="https://isimm.ieee.tn/" target="_blank" rel="noopener noreferrer" className="flex items-center">
                 <Logo type="ieee" className="h-6 w-auto" />
-              </div>
+              </Link>
             </div>
           </div>
         </div>

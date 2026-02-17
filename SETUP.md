@@ -1,6 +1,6 @@
-# WIE ISIMM Website - Backend Setup Guide
+# SIGHT ISIMM Website - Backend Setup Guide
 
-This guide will help you set up the backend for the WIE ISIMM website with admin authentication and event management using MongoDB.
+This guide will help you set up the backend for the SIGHT ISIMM website with admin authentication and event management using MongoDB.
 
 ## 🚀 Quick Start
 
@@ -15,7 +15,7 @@ This guide will help you set up the backend for the WIE ISIMM website with admin
    - Copy `.env.local` and update with your MongoDB credentials:
    ```env
    MONGODB_URI=your_mongodb_connection_string
-   ADMIN_EMAIL=admin@wie-isimm.org
+   ADMIN_EMAIL=admin@sight-isimm.org
    ADMIN_PASSWORD=admin123
    ```
 
@@ -71,7 +71,7 @@ pnpm dev
 ### Admin Access
 1. Navigate to `/admin`
 2. Login with credentials:
-   - Email: `admin@wie-isimm.org`
+   - Email: `admin@sight-isimm.org`
    - Password: `admin123`
 
 ### Managing Events

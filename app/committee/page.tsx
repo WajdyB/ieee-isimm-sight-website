@@ -127,7 +127,7 @@ export default function CommitteePage() {
       <section className="py-20 bg-gray-50">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center animate-on-scroll">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">Leadership Message</h2>
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">Chairman's Message</h2>
             <div className="bg-white p-8 rounded-xl shadow-lg">
               <p className="text-lg text-gray-600 mb-6 leading-relaxed italic">
                 "Our leadership team is committed to developing innovative technology solutions that address humanitarian challenges.
@@ -143,27 +143,11 @@ export default function CommitteePage() {
                   className={committeeImages.chair.className}
                 />
                 <div className="text-left">
-                  <p className="font-semibold text-gray-900">Nour Elhouda Salem</p>
-                  <p className="text-red-700">Chair, SIGHT ISIMM</p>
+                  <p className="font-semibold text-gray-900">Wassim Zili</p>
+                  <p className="text-red-700">Chairman, SIGHT ISIMM</p>
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Call to Action */}
-      <section className="py-20 bg-gradient-to-r from-red-700 to-red-900 text-white">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto text-center animate-on-scroll">
-            <h2 className="text-3xl md:text-4xl font-bold mb-6">Want to Get Involved?</h2>
-            <p className="text-xl mb-8 opacity-90 leading-relaxed">
-              Join our team and help us make a difference in humanitarian technology. We're always looking for
-              passionate individuals to contribute to our mission of addressing global challenges.
-            </p>
-            <button className="bg-white text-red-700 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors duration-200">
-              Contact Us
-            </button>
           </div>
         </div>
       </section>

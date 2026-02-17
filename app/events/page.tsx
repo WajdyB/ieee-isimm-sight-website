@@ -220,7 +220,7 @@ export default function EventsPage() {
 
       {/* Lightbox Modal */}
       {selectedEvent && (
-        <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[200] bg-black/90 flex items-center justify-center p-4">
           <div className="relative max-w-4xl w-full max-h-[90vh] bg-white rounded-xl overflow-hidden flex flex-col">
             {/* Close Button */}
             <button
@@ -315,22 +315,6 @@ export default function EventsPage() {
           </div>
         </div>
       )}
-
-      {/* Call to Action */}
-      <section className="py-20 bg-gradient-to-r from-red-700 to-red-900 text-white">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-3xl md:text-4xl font-bold mb-6">Stay Updated</h2>
-            <p className="text-xl mb-8 opacity-90 leading-relaxed">
-              Don't miss out on our upcoming events and activities. Follow us on social media and join our mailing list
-              for the latest updates on humanitarian technology initiatives.
-            </p>
-            <Button size="lg" variant="secondary">
-              Subscribe to Updates
-            </Button>
-          </div>
-        </div>
-      </section>
     </div>
   )
 }

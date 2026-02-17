@@ -18,13 +18,13 @@ const Header = () => {
   ]
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b border-red-100 shadow-sm">
+    <header className="fixed top-0 left-0 right-0 z-[100] bg-white/95 backdrop-blur-sm border-b border-red-100 shadow-sm">
       <div className="container mx-auto px-4 py-3">
         <div className="flex items-center justify-between">
-          {/* WIE Logo */}
-          <div className="flex items-center">
+          {/* SIGHT Logo - Links to Home */}
+          <Link href="/" className="flex items-center">
             <Logo type="wie" />
-          </div>
+          </Link>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
@@ -40,10 +40,10 @@ const Header = () => {
             ))}
           </nav>
 
-          {/* IEEE Tunisia Section Logo */}
-          <div className="hidden md:flex items-center">
+          {/* IEEE ISIMM SB Logo - Links to IEEE ISIMM Website */}
+          <Link href="https://isimm.ieee.tn/" target="_blank" rel="noopener noreferrer" className="hidden md:flex items-center">
             <Logo type="ieee" />
-          </div>
+          </Link>
 
           {/* Mobile Menu Button */}
           <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setIsMenuOpen(!isMenuOpen)}>
@@ -66,9 +66,9 @@ const Header = () => {
                 </Link>
               ))}
             </div>
-            <div className="flex justify-center mt-4 pt-4 border-t border-red-100">
+            <Link href="https://isimm.ieee.tn/" target="_blank" rel="noopener noreferrer" className="flex justify-center mt-4 pt-4 border-t border-red-100">
               <Logo type="ieeeMobile" />
-            </div>
+            </Link>
           </nav>
         )}
       </div>

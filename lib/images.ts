@@ -2,11 +2,11 @@
 export const aboutImages = {
   // Mission & Vision section image
   mission: {
-    src: "/images/about/about-image.png", // You'll add this image
-    alt: "SIGHT ISIMM Mission and Vision",
+    src: "/logos/sight_logo.png",
+    alt: "SIGHT ISIMM Logo",
     width: 600,
     height: 500,
-    className: "relative rounded-3xl shadow-2xl object-cover",
+    className: "relative rounded-3xl shadow-2xl object-contain",
   },
   
   // Photo Gallery images - you can add up to 12 images
@@ -54,43 +54,67 @@ export const committeeImages = {
   // Committee member photos - Updated with actual SIGHT ISIMM committee members
   members: [
     {
-      name: "Nour Elhouda Salem",
-      position: "Chairwoman",
-      image: "/images/committee/nour-salem.png", 
-      facebook: "https://www.facebook.com/salem.nour.3",
-      email: "nour.salem@ieee.org",
-      linkedin: "https://www.linkedin.com/in/nour-elhouda-salem-64a5a9283/",
+      name: "Wassim Zili",
+      position: "Chairman",
+      image: "/images/committee/wassim_zili.PNG", 
+      facebook: "https://www.facebook.com/wassim.zili.1", // TODO: Add Facebook link
+      email: "ziliwassim47@gmail.com", // TODO: Verify email
+      linkedin: "https://www.linkedin.com/in/wassim-zili-88646a34a/", // TODO: Add LinkedIn link
     },
     {
-      name: "Ons Guidara",
+      name: "Mohamed Sadok Bouslama",
       position: "Vice Chair",
-      image: "/images/committee/ons-guidara.png", 
-      facebook: "https://www.facebook.com/ons.guidara.121097",
-      email: "ons.guidara@ieee.org",
-      linkedin: "https://www.linkedin.com/in/ons-guidara-3308a1219/",
+      image: "/images/committee/mohamed_sadok_bouslama.png", 
+      facebook: "https://www.facebook.com/medsadok.bouslama", // TODO: Add Facebook link
+      email: "medsadook90@gmail.com", // TODO: Verify email
+      linkedin: "https://www.linkedin.com/in/mohamed-sadok-bouslama-0902a536a/", // TODO: Add LinkedIn link
     },
     {
-      name: "Yasmine Bregui",
+      name: "Maram Baccouche",
       position: "Secretary",
-      image: "/images/committee/yasmine-bregui.png", 
-      facebook: "https://www.facebook.com/yasmine.bregui",
-      email: "yasmine.bregui@ieee.org",
-      linkedin: "",
+      image: "/images/committee/maram_baccouche.png", 
+      facebook: "https://www.facebook.com/maram.baccouche.2025", // TODO: Add Facebook link
+      email: "marambaccouche0@gmail.com", // TODO: Verify email
+      linkedin: "https://www.linkedin.com/in/baccouche-maram-56131935a/", // TODO: Add LinkedIn link
     },
     {
-      name: "Nour Ben Hamouda",
+      name: "Hamza Khadija",
       position: "Treasurer",
-      image: "/images/committee/nour-ben-hamouda.png", 
-      facebook: "https://www.facebook.com/nour.edu.2025",
-      email: "nour.benhamouda@ieee.org",
-      linkedin: "https://www.linkedin.com/in/nour-ben-hamouda-b564a033a/",
+      image: "/images/committee/hamza_khadija.png", 
+      facebook: "https://www.facebook.com/hamza.khadija.1848", // TODO: Add Facebook link
+      email: "hamza.khadija20199@gmail.com", // TODO: Verify email
+      linkedin: "https://www.linkedin.com/in/hamza-khadija-099a1a395/", // TODO: Add LinkedIn link
+    },
+    {
+      name: "Mahmoud Balbali",
+      position: "Webmaster",
+      image: "/images/committee/mahmoud_balbali.PNG", 
+      facebook: "https://www.facebook.com/mahmoud.balbali", // TODO: Add Facebook link
+      email: "balbalimahmoud@gmail.com", // TODO: Verify email
+      linkedin: "https://www.linkedin.com/in/mahmoud-balbali-452256389/", // TODO: Add LinkedIn link
+    },
+    {
+      name: "Amani Rais",
+      position: "HR Manager",
+      image: "/images/committee/amani_rais.png", 
+      facebook: "https://www.facebook.com/amani.amona.31392", // TODO: Add Facebook link
+      email: "amanirais2005@gmail.com", // TODO: Verify email
+      linkedin: "", // TODO: Add LinkedIn link
+    },
+    {
+      name: "Saif Balbali",
+      position: "Project Coordinator",
+      image: "/images/committee/saif_balbali.png", 
+      facebook: "https://www.facebook.com/saifbalbali", // TODO: Add Facebook link
+      email: "saifbalbali20@gmail.com", // TODO: Verify email
+      linkedin: "", // TODO: Add LinkedIn link
     },
   ],
   
   // Chair photo for leadership message section
   chair: {
-    src: "/images/committee/nour-salem.png", 
-    alt: "Nour Elhouda Salem - Chairwoman",
+    src: "/images/committee/wassim_zili.PNG",
+    alt: "Wassim Zili - Chairman",
     width: 80,
     height: 80,
     className: "w-16 h-16 rounded-full object-cover mr-4",

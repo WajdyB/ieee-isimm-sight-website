@@ -101,11 +101,11 @@ export default function HomePage() {
               <div className="relative">
                 <div className="absolute inset-0 bg-red-200 rounded-3xl transform rotate-6"></div>
                 <Image
-                  src="/images/home/hero-image.png"
-                  alt="SIGHT ISIMM Members"
+                  src="/logos/sight_logo.png"
+                  alt="SIGHT ISIMM Logo"
                   width={600}
                   height={500}
-                  className="relative rounded-3xl shadow-2xl object-cover w-full h-auto"
+                  className="relative rounded-3xl shadow-2xl object-contain w-full h-auto"
                   priority
                 />
               </div>
@@ -114,49 +114,99 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section className="py-16 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-3 gap-8 animate-on-scroll">
-            <div className="text-center group">
-              <div className="bg-red-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-red-200 transition-colors duration-300">
-                <Users className="h-8 w-8 text-red-700" />
+      {/* Impact Showcase Section - Creative Design */}
+      <section className="py-20 bg-gradient-to-br from-gray-50 via-white to-red-50 relative overflow-hidden">
+        {/* Decorative Background Elements */}
+        <div className="absolute top-0 right-0 w-96 h-96 bg-red-100 rounded-full filter blur-3xl opacity-20 -translate-y-1/2 translate-x-1/2"></div>
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-red-100 rounded-full filter blur-3xl opacity-20 translate-y-1/2 -translate-x-1/2"></div>
+        
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="text-center mb-16 animate-on-scroll">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Empowering Change Through <span className="text-red-700">Innovation</span>
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              We're more than just numbers—we're a movement of passionate innovators creating real impact
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            {/* Active Members Card */}
+            <div className="group relative animate-on-scroll">
+              <div className="absolute inset-0 bg-gradient-to-br from-red-500 to-red-700 rounded-2xl transform rotate-3 group-hover:rotate-6 transition-transform duration-300 opacity-10"></div>
+              <div className="relative bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 border border-red-100">
+                <div className="bg-gradient-to-br from-red-500 to-red-700 w-16 h-16 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                  <Users className="h-8 w-8 text-white" />
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                  A Growing Community
+                </h3>
+                <p className="text-gray-600 leading-relaxed mb-4">
+                  Passionate minds united by a shared vision of humanitarian innovation
+                </p>
+                <div className="flex items-center text-red-700 font-semibold group-hover:translate-x-2 transition-transform duration-300">
+                  <span>Join our family</span>
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                </div>
               </div>
-              <h3 className="text-3xl font-bold text-gray-900 mb-2">50+</h3>
-              <p className="text-gray-600">Active Members</p>
             </div>
-            <div className="text-center group">
-              <div className="bg-red-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-red-200 transition-colors duration-300">
-                <Calendar className="h-8 w-8 text-red-700" />
+
+            {/* Projects Completed Card */}
+            <div className="group relative animate-on-scroll" style={{ animationDelay: '0.1s' }}>
+              <div className="absolute inset-0 bg-gradient-to-br from-red-500 to-red-700 rounded-2xl transform -rotate-3 group-hover:-rotate-6 transition-transform duration-300 opacity-10"></div>
+              <div className="relative bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 border border-red-100">
+                <div className="bg-gradient-to-br from-red-500 to-red-700 w-16 h-16 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                  <Calendar className="h-8 w-8 text-white" />
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                  Turning Ideas Into Reality
+                </h3>
+                <p className="text-gray-600 leading-relaxed mb-4">
+                  From concept to completion—delivering solutions that make a difference
+                </p>
+                <div className="flex items-center text-red-700 font-semibold group-hover:translate-x-2 transition-transform duration-300">
+                  <span>Explore our work</span>
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                </div>
               </div>
-              <h3 className="text-3xl font-bold text-gray-900 mb-2">25+</h3>
-              <p className="text-gray-600">Projects Completed</p>
             </div>
-            <div className="text-center group">
-              <div className="bg-red-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-red-200 transition-colors duration-300">
-                <Award className="h-8 w-8 text-red-700" />
+
+            {/* Communities Impacted Card */}
+            <div className="group relative animate-on-scroll" style={{ animationDelay: '0.2s' }}>
+              <div className="absolute inset-0 bg-gradient-to-br from-red-500 to-red-700 rounded-2xl transform rotate-3 group-hover:rotate-6 transition-transform duration-300 opacity-10"></div>
+              <div className="relative bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 border border-red-100">
+                <div className="bg-gradient-to-br from-red-500 to-red-700 w-16 h-16 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                  <Award className="h-8 w-8 text-white" />
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                  Creating Lasting Impact
+                </h3>
+                <p className="text-gray-600 leading-relaxed mb-4">
+                  Transforming communities through technology-driven humanitarian solutions
+                </p>
+                <div className="flex items-center text-red-700 font-semibold group-hover:translate-x-2 transition-transform duration-300">
+                  <span>See our impact</span>
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                </div>
               </div>
-              <h3 className="text-3xl font-bold text-gray-900 mb-2">10+</h3>
-              <p className="text-gray-600">Communities Impacted</p>
             </div>
           </div>
-        </div>
-      </section>
 
-      {/* Mission Preview */}
-      <section className="py-20 bg-gradient-to-r from-red-700 to-red-900 text-white">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto text-center animate-on-scroll">
-            <h2 className="text-3xl md:text-4xl font-bold mb-6">Our Mission</h2>
-            <p className="text-xl mb-8 opacity-90 leading-relaxed">
-              To develop and apply innovative technology solutions that address humanitarian challenges and improve the quality of life
-              for communities worldwide through sustainable development, education, and collaborative partnerships.
+          {/* Bottom Call-to-Action */}
+          <div className="text-center mt-16 animate-on-scroll">
+            <p className="text-xl text-gray-700 font-medium mb-6">
+              Every project starts with a single idea. What's yours?
             </p>
-            <Button asChild variant="secondary" size="lg">
-              <Link href="/about">
-                Discover Our Story <ArrowRight className="ml-2 h-5 w-5" />
-              </Link>
-            </Button>
+            <div className="flex flex-wrap gap-4 justify-center">
+              <div className="flex items-center bg-white px-6 py-3 rounded-full shadow-md">
+                <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse mr-3"></div>
+                <span className="text-gray-700 font-medium">Actively Building</span>
+              </div>
+              <div className="flex items-center bg-white px-6 py-3 rounded-full shadow-md">
+                <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse mr-3"></div>
+                <span className="text-gray-700 font-medium">Open for Collaboration</span>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -188,14 +238,7 @@ export default function HomePage() {
               recentEvents.map((event, index) => (
                 <div
                   key={event._id || `event-${index}`}
-                  className="w-full max-w-sm bg-white rounded-xl shadow-lg overflow-hidden group hover:shadow-xl transition-all duration-300 animate-on-scroll"
-                  style={{ 
-                    display: 'block', 
-                    visibility: 'visible', 
-                    opacity: 1,
-                    position: 'relative',
-                    zIndex: 1000
-                  }}
+                  className="w-full max-w-sm bg-white rounded-xl shadow-lg overflow-hidden group hover:shadow-xl transition-all duration-300"
                 >
                   <div className="relative overflow-hidden">
                     <Image

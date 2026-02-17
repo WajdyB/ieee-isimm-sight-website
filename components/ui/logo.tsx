@@ -11,7 +11,7 @@ export function Logo({ type, className }: LogoProps) {
       width={config.width}
       height={config.height}
       className={className || config.className}
-      priority={type === "wie"} // Prioritize loading the main WIE logo
+      priority={type === "wie"} // Prioritize loading the main SIGHT logo
     />
   )
 } 

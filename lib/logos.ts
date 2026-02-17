@@ -1,22 +1,22 @@
-// Logo configuration for the WIE ISIMM website
+// Logo configuration for the SIGHT ISIMM website
 export const logos = {
   wie: {
-    src: "/logos/logo-sight.png",
-    alt: "WIE ISIMM Logo",
+    src: "/logos/sight_logo.png",
+    alt: "SIGHT ISIMM Logo",
     width: 180,
     height: 75,
     className: "h-16 w-auto",
   },
   ieee: {
-    src: "/logos/ieee-tunisia-logo.png",
-    alt: "IEEE Tunisia Section",
+    src: "/logos/logo-isimm-sb.png",
+    alt: "IEEE ISIMM Student Branch",
     width: 180,
     height: 75,
     className: "h-16 w-auto",
   },
   ieeeMobile: {
-    src: "/logos/ieee-tunisia-logo.png",
-    alt: "IEEE Tunisia Section",
+    src: "/logos/logo-isimm-sb.png",
+    alt: "IEEE ISIMM Student Branch",
     width: 140,
     height: 60,
     className: "h-12 w-auto",
