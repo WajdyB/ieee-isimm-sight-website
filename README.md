@@ -1,187 +1,73 @@
-# SIGHT ISIMM Website
+# IEEE SIGHT ISIMM Website
 
-A modern, responsive website for the IEEE ISIMM Student Branch's Special Interest Group in Humanitarian Technology (SIGHT). Built with Next.js, React, and Tailwind CSS.
+Welcome to the official website of IEEE SIGHT ISIMM (Special Interest Group in Humanitarian Technology) - a chapter of the IEEE ISIMM Student Branch in Tunisia.
 
-## 🌟 Features
+## About This Website
 
-### Core Pages
-- **Homepage** - Introduction to SIGHT ISIMM with mission overview and recent events
-- **About Us** - Detailed information about our mission, vision, and core values
-- **Leadership Team** - Meet our dedicated committee members and leadership
-- **Events** - Showcase of our humanitarian technology events and projects
-- **SDGs** - Interactive showcase of the 17 Sustainable Development Goals
-- **Admin Panel** - Event management system for administrators
+This website serves as the digital home for SIGHT ISIMM, showcasing our commitment to using technology to improve the lives of underserved communities worldwide.
 
-### Key Features
-- **Responsive Design** - Optimized for all devices (desktop, tablet, mobile)
-- **Modern UI/UX** - Clean, professional design with smooth animations
-- **Dynamic Content** - Real-time event updates and management
-- **Interactive Elements** - Hover effects, animations, and smooth transitions
-- **SEO Optimized** - Proper meta tags and structured content
-- **Accessibility** - WCAG compliant design and navigation
+### What You'll Find Here
 
-## 🚀 Technology Stack
+**Home Page**
+- Our mission and vision for humanitarian technology
+- Overview of our impact in the community
+- Latest events and activities
 
-- **Framework**: Next.js 14 (App Router)
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS
-- **UI Components**: Custom components with Lucide React icons
-- **Database**: MongoDB (for events management)
-- **Deployment**: Vercel-ready
+**About Us**
+- Detailed information about SIGHT and our humanitarian technology focus
+- How SIGHT creates impact through sustainable projects
+- Our approach to addressing global challenges
+- Technology focus areas: renewable energy, healthcare, education, and clean water
 
-## 📋 Prerequisites
+**Leadership Team**
+- Meet our dedicated committee members
+- Chairman's message
+- Contact information for each team member
 
-Before running this project, make sure you have:
+**Events**
+- Showcases our workshops, conferences, and community projects
+- Photo galleries and event descriptions
+- Information about upcoming activities
 
-- **Node.js** (version 18 or higher)
-- **npm** or **yarn** package manager
-- **MongoDB** database (for full functionality)
+**Sustainable Development Goals (SDGs)**
+- Interactive showcase of the 17 UN SDGs
+- How each goal relates to humanitarian technology
+- Specific targets and technology impact areas
+- Beautiful, color-coded presentation of each goal
 
-## 🛠️ Installation
+**Admin Panel**
+- Secure event management system
+- Upload and manage event information and images
+- For authorized committee members only
 
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd ieee-sight-isimm-website
-   ```
+## Our Mission
 
-2. **Install dependencies**
-   ```bash
-   npm install
-   # or
-   yarn install
-   ```
+SIGHT ISIMM is dedicated to applying technology to humanitarian challenges, focusing on projects that benefit underserved populations in Tunisia and beyond. We work on sustainable solutions in areas such as:
 
-3. **Environment Setup**
-   Create a `.env.local` file in the root directory:
-   ```env
-   MONGODB_URI=
-   ```
+- Renewable energy and clean technology
+- Healthcare access and medical technology
+- Educational technology and digital literacy
+- Clean water and sanitation solutions
+- Sustainable communities and infrastructure
 
-4. **Run the development server**
-   ```bash
-   npm run dev
-   # or
-   yarn dev
-   ```
+## Technology & Design
 
-5. **Open your browser**
-   Navigate to [http://localhost:3000](http://localhost:3000)
+This website is built with modern web technologies to provide a fast, responsive, and accessible experience on all devices - from mobile phones to desktop computers.
 
-## 📁 Project Structure
+## Get Involved
 
-```
-ieee-sight-isimm-website/
-├── app/                    # Next.js app directory
-│   ├── api/               # API routes
-│   ├── about/             # About page
-│   ├── admin/             # Admin panel
-│   ├── committee/         # Leadership team page
-│   ├── events/            # Events page
-│   ├── sdgs/              # SDGs showcase page
-│   ├── test-events/       # Test events page
-│   ├── globals.css        # Global styles
-│   ├── layout.tsx         # Root layout
-│   └── page.tsx           # Homepage
-├── components/            # Reusable components
-│   ├── ui/               # UI components (buttons, etc.)
-│   ├── header.tsx        # Navigation header
-│   └── footer.tsx        # Footer component
-├── lib/                  # Utility functions
-│   └── images.ts         # Image configurations
-├── public/               # Static assets
-│   └── images/           # Image files
-├── styles/               # Additional styles
-└── tailwind.config.ts    # Tailwind configuration
-```
+Interested in humanitarian technology? The website provides information on how to:
+- Join our team
+- Participate in our events
+- Collaborate on projects
+- Support our mission
 
-## 🎨 Design System
-
-### Color Scheme
-- **Primary**: Red (#B91C1C) - Represents humanitarian focus
-- **Secondary**: White and gray tones for clean design
-- **Accent**: Various colors for SDG cards
-
-### Typography
-- **Headings**: Bold, modern fonts
-- **Body**: Clean, readable text
-- **Responsive**: Scales appropriately across devices
-
-## 📱 Responsive Design
-
-The website is fully responsive with breakpoints for:
-- **Mobile**: 320px - 768px
-- **Tablet**: 768px - 1024px
-- **Desktop**: 1024px+
-
-## 🔧 Available Scripts
-
-```bash
-# Development
-npm run dev          # Start development server
-npm run build        # Build for production
-npm run start        # Start production server
-npm run lint         # Run ESLint
-
-# Testing (if configured)
-npm run test         # Run tests
-npm run test:watch   # Run tests in watch mode
-```
-
-## 📊 Content Management
-
-### Events System
-- **Dynamic Events**: Events are stored in MongoDB
-- **Admin Panel**: Add, edit, and manage events
-- **Real-time Updates**: Changes reflect immediately
-
-### Static Content
-- **Committee Members**: Managed through `lib/images.ts`
-- **SDGs Data**: Hardcoded in the SDGs page component
-- **Images**: Stored in `public/images/` directory
-
-## 🌐 Deployment
-
-### Vercel (Recommended)
-1. Connect your GitHub repository to Vercel
-2. Set environment variables in Vercel dashboard
-3. Deploy automatically on push to main branch
-
-### Other Platforms
-- **Netlify**: Compatible with Next.js
-- **Railway**: Easy deployment with database
-- **AWS/GCP**: For enterprise deployments
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## 📝 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 👥 Team
-
-- **SIGHT ISIMM Committee** - Content and direction
-- **Development Team** - Technical implementation
-
-## 📞 Contact
+## Contact Us
 
 - **Email**: contact@sight-isimm.org
 - **Facebook**: [IEEESIGHTISIMMSA](https://www.facebook.com/IEEESIGHTISIMMSA)
 - **LinkedIn**: [ieee_sight_isimm_sag](https://www.linkedin.com/company/ieee_sight_isimm_sag)
 
-## 🙏 Acknowledgments
-
-- **IEEE SIGHT** for the humanitarian technology mission
-- **ISIMM Student Branch** for support and resources
-- **Next.js Team** for the amazing framework
-- **Tailwind CSS** for the utility-first CSS framework
-
 ---
 
-**Made with ❤️ for humanitarian technology advancement** 
+**IEEE SIGHT ISIMM** - Making a difference through humanitarian technology
