@@ -330,7 +330,7 @@ export default function SDGsPage() {
                 </DialogTrigger>
 
                 {/* Modal Content */}
-                <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+                <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto z-[200]">
                   <DialogHeader>
                     <div className="flex items-start gap-4 mb-4">
                       <div className={`${sdg.bgColor} w-16 h-16 rounded-xl flex items-center justify-center flex-shrink-0`}>
