@@ -31,6 +31,7 @@ const Footer = () => {
     { name: "About Us", href: "/about" },
     { name: "Leadership Team", href: "/committee" },
     { name: "Events", href: "/events" },
+    { name: "Awards", href: "/awards" },
     { name: "SDGs", href: "/sdgs" },
   ]
 
@@ -104,10 +105,14 @@ const Footer = () => {
             <p className="text-gray-400 text-sm">
               © {currentYear} SIGHT ISIMM. All rights reserved.
             </p>
-            <div className="flex items-center mt-4 md:mt-0">
-              <span className="text-gray-400 text-sm mr-2">Powered by</span>
-              <Link href="https://isimm.ieee.tn/" target="_blank" rel="noopener noreferrer" className="flex items-center">
+            <div className="flex items-center gap-3 mt-4 md:mt-0 flex-wrap justify-center">
+              <span className="text-gray-400 text-sm">Powered by</span>
+              <Link href="https://isimm.ieee.tn/" target="_blank" rel="noopener noreferrer" className="flex items-center" aria-label="IEEE ISIMM Student Branch">
                 <Logo type="ieee" className="h-6 w-auto" />
+              </Link>
+              <span className="text-gray-400 text-sm">and</span>
+              <Link href="https://sight.ieee.tn/" target="_blank" rel="noopener noreferrer" className="flex items-center" aria-label="SIGHT Tunisia Section">
+                <Logo type="sightTunisia" className="h-6 w-auto" />
               </Link>
             </div>
           </div>

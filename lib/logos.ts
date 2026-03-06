@@ -21,6 +21,13 @@ export const logos = {
     height: 60,
     className: "h-12 w-auto",
   },
+  sightTunisia: {
+    src: "/logos/sight-tunisia-section-logo.png",
+    alt: "SIGHT Tunisia Section",
+    width: 180,
+    height: 75,
+    className: "h-6 w-auto",
+  },
 } as const
 
 // Logo component props type

@@ -75,4 +75,135 @@ export async function deleteEvent(id: string) {
   })
 
   return response.json()
+}
+
+// Mandates API
+export async function getMandates() {
+  const response = await fetch('/api/mandates')
+  return response.json()
+}
+
+export async function createMandate(data: { name: string; startYear: number; endYear: number; isCurrent: boolean }) {
+  const response = await fetch('/api/mandates', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  })
+  return response.json()
+}
+
+// Excom API
+export async function getExcom(mandateId?: string) {
+  const url = mandateId ? `/api/excom?mandate=${mandateId}` : '/api/excom'
+  const response = await fetch(url)
+  return response.json()
+}
+
+export async function createExcomMember(data: {
+  mandateId: string
+  name: string
+  position: string
+  customPosition?: string
+  email: string
+  facebook?: string
+  linkedin?: string
+  imageUrl?: string
+  order?: number
+}) {
+  const response = await fetch('/api/excom', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  })
+  return response.json()
+}
+
+export async function updateExcomMember(
+  id: string,
+  data: Partial<{
+    name: string
+    position: string
+    customPosition: string
+    email: string
+    facebook: string
+    linkedin: string
+    imageUrl: string
+    order: number
+  }>
+) {
+  const response = await fetch(`/api/excom/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  })
+  return response.json()
+}
+
+export async function deleteExcomMember(id: string) {
+  const response = await fetch(`/api/excom/${id}`, { method: 'DELETE' })
+  return response.json()
+}
+
+export async function uploadExcomImage(file: File) {
+  const formData = new FormData()
+  formData.append('file', file)
+  const response = await fetch('/api/excom/upload', {
+    method: 'POST',
+    body: formData,
+  })
+  return response.json()
+}
+
+// Awards API
+export async function getAwards() {
+  const response = await fetch('/api/awards')
+  return response.json()
+}
+
+export async function createAward(data: { title: string; year: number; description?: string; imageUrl?: string }) {
+  const response = await fetch('/api/awards', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  })
+  return response.json()
+}
+
+export async function updateAward(id: string, data: Partial<{ title: string; year: number; description: string; imageUrl: string }>) {
+  const response = await fetch(`/api/awards/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  })
+  return response.json()
+}
+
+export async function deleteAward(id: string) {
+  const response = await fetch(`/api/awards/${id}`, { method: 'DELETE' })
+  return response.json()
+}
+
+export async function uploadAwardImage(file: File) {
+  const formData = new FormData()
+  formData.append('file', file)
+  const response = await fetch('/api/awards/upload', {
+    method: 'POST',
+    body: formData,
+  })
+  return response.json()
+}
+
+// Newsletter API
+export async function subscribeNewsletter(email: string) {
+  const response = await fetch('/api/newsletter', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email }),
+  })
+  return response.json()
+}
+
+export async function getNewsletterSubscribers() {
+  const response = await fetch('/api/newsletter')
+  return response.json()
 } 

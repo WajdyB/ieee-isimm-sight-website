@@ -14,6 +14,7 @@ const Header = () => {
     { name: "About Us", href: "/about" },
     { name: "Leadership Team", href: "/committee" },
     { name: "Events", href: "/events" },
+    { name: "Awards", href: "/awards" },
     { name: "SDGs", href: "/sdgs" },
   ]
 
@@ -38,6 +39,14 @@ const Header = () => {
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-red-700 transition-all duration-200 group-hover:w-full"></span>
               </Link>
             ))}
+            <Link
+              href="https://docs.google.com/forms/d/e/1FAIpQLSdTniKT8Ex2SywG5WxtNNolIkvKwgYA-szdxpXLBAOSl1qqPA/viewform"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-red-700 text-white px-4 py-2 rounded-lg font-semibold hover:bg-red-800 transition-colors duration-200"
+            >
+              Join Us
+            </Link>
           </nav>
 
           {/* IEEE ISIMM SB Logo - Links to IEEE ISIMM Website */}
@@ -65,6 +74,15 @@ const Header = () => {
                   {item.name}
                 </Link>
               ))}
+              <Link
+                href="https://docs.google.com/forms/d/e/1FAIpQLSdTniKT8Ex2SywG5WxtNNolIkvKwgYA-szdxpXLBAOSl1qqPA/viewform"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-red-700 text-white px-4 py-3 rounded-lg font-semibold text-center hover:bg-red-800 transition-colors duration-200 mt-2"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Join Us
+              </Link>
             </div>
             <Link href="https://isimm.ieee.tn/" target="_blank" rel="noopener noreferrer" className="flex justify-center mt-4 pt-4 border-t border-red-100">
               <Logo type="ieeeMobile" />
