@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getDb } from '@/lib/mongodb'
-import { ObjectId } from 'mongodb'
 
 // GET all events
 export async function GET() {
@@ -32,6 +31,23 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const eventType = eventData.eventType === 'upcoming' ? 'upcoming' : 'previous'
+    const normalizedRegistrationLink = (eventData.registrationLink ?? '').toString().trim()
+    if (eventType === 'upcoming') {
+      if (!normalizedRegistrationLink) {
+        return NextResponse.json(
+          { success: false, message: 'registrationLink is required for upcoming events' },
+          { status: 400 }
+        )
+      }
+      if (!/^https?:\/\//i.test(normalizedRegistrationLink)) {
+        return NextResponse.json(
+          { success: false, message: 'registrationLink must be a valid http/https URL' },
+          { status: 400 }
+        )
+      }
+    }
+
     const db = await getDb()
     const now = new Date()
     const event = {
@@ -39,6 +55,8 @@ export async function POST(request: NextRequest) {
       description: eventData.description,
       date: eventData.date,
       location: eventData.location,
+      eventType,
+      registrationLink: eventType === 'upcoming' ? normalizedRegistrationLink : '',
       attendees: eventData.attendees || 0,
       images: eventData.images || [],
       created_at: now,

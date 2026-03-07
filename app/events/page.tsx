@@ -1,9 +1,11 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import Image from "next/image"
+import Link from "next/link"
 import { Calendar, MapPin, Users, X, ChevronLeft, ChevronRight, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { NewsletterSection } from "@/components/newsletter-section"
 
 interface Event {
   _id: string
@@ -11,6 +13,8 @@ interface Event {
   description: string
   date: string
   location: string
+  eventType?: "upcoming" | "previous"
+  registrationLink?: string
   attendees: number
   images: string[]
   created_at: string
@@ -23,26 +27,19 @@ export default function EventsPage() {
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
 
-  // Load events from database
   useEffect(() => {
     const loadEvents = async () => {
       try {
         setLoading(true)
-        console.log('Loading events from API...')
-        
         const response = await fetch('/api/events')
         const data = await response.json()
-        
-        console.log('API Response:', data)
+
         if (data.success) {
-          console.log('Events loaded successfully:', data.data)
           setEvents(data.data || [])
         } else {
-          console.error('Failed to load events:', data.message)
           setEvents([])
         }
       } catch (error) {
-        console.error('Error loading events:', error)
         setEvents([])
       } finally {
         setLoading(false)
@@ -92,12 +89,22 @@ export default function EventsPage() {
       if (data.success) {
         setEvents(data.data || [])
       }
-    } catch (error) {
-      console.error('Error refreshing events:', error)
     } finally {
       setLoading(false)
     }
   }
+
+  const upcomingEvents = useMemo(() => {
+    return [...events]
+      .filter((event) => event.eventType === "upcoming")
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+  }, [events])
+
+  const previousEvents = useMemo(() => {
+    return [...events]
+      .filter((event) => event.eventType !== "upcoming")
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+  }, [events])
 
   if (loading) {
     return (
@@ -110,9 +117,6 @@ export default function EventsPage() {
     )
   }
 
-  console.log('Rendering events page. Events count:', events.length)
-  console.log('Events data:', events)
-
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
@@ -123,17 +127,17 @@ export default function EventsPage() {
               Our <span className="text-red-700">Events</span>
             </h1>
             <p className="text-xl text-gray-600 leading-relaxed">
-              Discover our past events and see the impact we're making in humanitarian technology
+              Explore our upcoming opportunities and revisit our previous humanitarian technology events
             </p>
           </div>
         </div>
       </section>
 
-      {/* Events Grid */}
+      {/* Upcoming Events */}
       <section className="py-20 bg-white">
         <div className="container mx-auto px-4">
           <div className="flex justify-between items-center mb-8">
-            <h2 className="text-2xl font-bold text-gray-900">All Events ({events.length})</h2>
+            <h2 className="text-2xl font-bold text-gray-900">Upcoming Events ({upcomingEvents.length})</h2>
             <Button 
               onClick={handleRefresh} 
               variant="outline"
@@ -142,8 +146,8 @@ export default function EventsPage() {
               Refresh Events
             </Button>
           </div>
-          
-          {events.length === 0 ? (
+
+          {upcomingEvents.length === 0 ? (
             <div className="text-center py-12">
               <div className="max-w-md mx-auto">
                 <div className="text-gray-400 mb-4">
@@ -151,25 +155,19 @@ export default function EventsPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 002 2z" />
                   </svg>
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">No Events Found</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">No Upcoming Events</h3>
                 <p className="text-gray-600 mb-4">
-                  There are currently no events scheduled. Check back soon for upcoming events!
-                </p>
-                <p className="text-sm text-gray-500">
-                  Events will appear here once they are added through the admin panel.
+                  There are currently no upcoming events with registration.
                 </p>
               </div>
             </div>
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {events.map((event, index) => {
-                console.log('Rendering event:', event.title, 'at index:', index)
-                return (
-                  <div
-                    key={event._id}
-                    className="bg-white rounded-xl shadow-lg overflow-hidden group hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 cursor-pointer"
-                    onClick={() => openLightbox(event)}
-                  >
+              {upcomingEvents.map((event) => (
+                <div
+                  key={event._id}
+                  className="bg-white rounded-xl shadow-lg overflow-hidden group hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2"
+                >
                     <div className="relative overflow-hidden">
                       <Image
                         src={event.images && event.images.length > 0 ? event.images[0] : "/placeholder.svg"}
@@ -177,18 +175,8 @@ export default function EventsPage() {
                         width={400}
                         height={250}
                         className="w-full h-48 object-contain group-hover:scale-110 transition-transform duration-300"
-                        onError={(e) => {
-                          // Fallback to placeholder if image fails to load
-                          const target = e.target as HTMLImageElement
-                          target.src = "/placeholder.svg"
-                        }}
                       />
                       <div className="absolute inset-0 bg-red-700/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                      <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full">
-                        <span className="text-sm font-medium text-red-700">
-                          {event.images ? event.images.length : 0} photos
-                        </span>
-                      </div>
                     </div>
                     <div className="p-6">
                       <h3 className="text-xl font-semibold text-gray-900 mb-3 group-hover:text-red-700 transition-colors duration-200">
@@ -209,14 +197,93 @@ export default function EventsPage() {
                           {event.attendees} attendees
                         </div>
                       </div>
+                      <div className="mt-5">
+                        {event.registrationLink ? (
+                          <Button asChild className="w-full bg-red-700 hover:bg-red-800 text-white">
+                            <Link href={event.registrationLink} target="_blank" rel="noopener noreferrer">
+                              Register Now
+                            </Link>
+                          </Button>
+                        ) : (
+                          <Button className="w-full" variant="outline" disabled>
+                            Registration Soon
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   </div>
-                )
-              })}
+              ))}
             </div>
           )}
         </div>
       </section>
+
+      {/* Previous Events */}
+      <section className="py-20 bg-gray-50 border-t">
+        <div className="container mx-auto px-4">
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold text-gray-900">Previous Events ({previousEvents.length})</h2>
+            <p className="text-gray-600 mt-1">Browse our past events and photo highlights.</p>
+          </div>
+
+          {previousEvents.length === 0 ? (
+            <div className="text-center py-10 text-gray-500">No previous events available yet.</div>
+          ) : (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {previousEvents.map((event) => (
+                <div
+                  key={event._id}
+                  className="bg-white rounded-xl shadow-lg overflow-hidden group hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 cursor-pointer"
+                  onClick={() => openLightbox(event)}
+                >
+                  <div className="relative overflow-hidden">
+                    <Image
+                      src={event.images && event.images.length > 0 ? event.images[0] : "/placeholder.svg"}
+                      alt={event.title}
+                      width={400}
+                      height={250}
+                      className="w-full h-48 object-contain group-hover:scale-110 transition-transform duration-300"
+                    />
+                    <div className="absolute inset-0 bg-red-700/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full">
+                      <span className="text-sm font-medium text-red-700">
+                        {event.images ? event.images.length : 0} photos
+                      </span>
+                    </div>
+                  </div>
+                  <div className="p-6">
+                    <h3 className="text-xl font-semibold text-gray-900 mb-3 group-hover:text-red-700 transition-colors duration-200">
+                      {event.title}
+                    </h3>
+                    <p className="text-gray-600 mb-4 line-clamp-2">{event.description}</p>
+                    <div className="space-y-2 text-sm text-gray-500">
+                      <div className="flex items-center">
+                        <Calendar className="h-4 w-4 mr-2 text-red-700" />
+                        {formatDate(event.date)}
+                      </div>
+                      <div className="flex items-center">
+                        <MapPin className="h-4 w-4 mr-2 text-red-700" />
+                        {event.location}
+                      </div>
+                      <div className="flex items-center">
+                        <Users className="h-4 w-4 mr-2 text-red-700" />
+                        {event.attendees} attendees
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+
+      <NewsletterSection
+        title="Event Proposal"
+        description="Have an event idea for our community? Share your proposal and help us design meaningful activities together."
+        buttonText="Event Proposal Form"
+        formUrl="https://docs.google.com/forms/d/e/1FAIpQLSfV21OpjokhHqvLNq54QeFZmI8aSF3QW_NvTOUCGiUdQWlq5Q/viewform"
+      />
 
       {/* Lightbox Modal */}
       {selectedEvent && (

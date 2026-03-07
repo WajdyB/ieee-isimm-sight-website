@@ -1,6 +1,6 @@
 import Link from "next/link"
-import { Facebook, Instagram, Linkedin, Mail } from "lucide-react"
-import { Logo } from "@/components/ui/logo"
+import Image from "next/image"
+import { Facebook, Instagram, Mail } from "lucide-react"
 
 const Footer = () => {
   const currentYear = new Date().getFullYear()
@@ -31,6 +31,8 @@ const Footer = () => {
     { name: "About Us", href: "/about" },
     { name: "Leadership Team", href: "/committee" },
     { name: "Events", href: "/events" },
+    { name: "Projects", href: "/projects" },
+    { name: "News", href: "/news" },
     { name: "Awards", href: "/awards" },
     { name: "SDGs", href: "/sdgs" },
   ]
@@ -42,7 +44,14 @@ const Footer = () => {
           {/* Logo and Description */}
           <div className="md:col-span-2">
             <Link href="/" className="flex items-center mb-4 w-fit">
-              <Logo type="wie" className="h-12 w-auto" />
+              <Image
+                src="/logos/sight logo blanc.png"
+                alt="SIGHT ISIMM Logo"
+                width={180}
+                height={75}
+                className="h-16 w-auto"
+                priority
+              />
             </Link>
             <p className="text-gray-300 mb-6 leading-relaxed">
               Special Interest Group in Humanitarian Technology (SIGHT) of IEEE ISIMM Student Branch. Advancing humanitarian technology 
@@ -108,11 +117,23 @@ const Footer = () => {
             <div className="flex items-center gap-3 mt-4 md:mt-0 flex-wrap justify-center">
               <span className="text-gray-400 text-sm">Powered by</span>
               <Link href="https://isimm.ieee.tn/" target="_blank" rel="noopener noreferrer" className="flex items-center" aria-label="IEEE ISIMM Student Branch">
-                <Logo type="ieee" className="h-6 w-auto" />
+                <Image
+                  src="/logos/logo ieee isimm blanc.png"
+                  alt="IEEE ISIMM Student Branch"
+                  width={180}
+                  height={75}
+                  className="h-10 w-auto"
+                />
               </Link>
               <span className="text-gray-400 text-sm">and</span>
               <Link href="https://sight.ieee.tn/" target="_blank" rel="noopener noreferrer" className="flex items-center" aria-label="SIGHT Tunisia Section">
-                <Logo type="sightTunisia" className="h-6 w-auto" />
+                <Image
+                  src="/logos/tunisia section logo blanc.png"
+                  alt="SIGHT Tunisia Section"
+                  width={180}
+                  height={75}
+                  className="h-10 w-auto"
+                />
               </Link>
             </div>
           </div>

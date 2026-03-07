@@ -10,8 +10,45 @@ export interface EventData {
   description: string
   date: string
   location: string
+  eventType: "upcoming" | "previous"
+  registrationLink?: string
   attendees?: number
   images?: string[] // URLs returned from /api/upload, now served from MongoDB GridFS
+}
+
+export type ProjectStatus = "Completed" | "In Progress" | "Planned"
+export type ProjectType = "Tech for Good" | "TSYP" | "SDC" | "Other"
+
+export interface ProjectData {
+  title: string
+  description: string
+  date: string
+  projectType: ProjectType
+  customType?: string
+  imageUrl?: string
+  proposalFormUrl: string
+  status: ProjectStatus
+}
+
+export type NewsCategory =
+  | "Announcement"
+  | "Opportunity"
+  | "Impact Story"
+  | "Partnership"
+  | "Call for Volunteers"
+  | "Event Update"
+
+export interface NewsData {
+  title: string
+  summary: string
+  date: string
+  category: NewsCategory
+  imageUrl?: string
+  link?: string
+  linkLabel?: string
+  isPinned?: boolean
+  hasDeadline?: boolean
+  deadlineDate?: string
 }
 
 // Authentication
@@ -207,3 +244,68 @@ export async function getNewsletterSubscribers() {
   const response = await fetch('/api/newsletter')
   return response.json()
 } 
+
+// Projects API
+export async function getProjects() {
+  const response = await fetch('/api/projects')
+  return response.json()
+}
+
+export async function createProject(data: ProjectData) {
+  const response = await fetch('/api/projects', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  })
+  return response.json()
+}
+
+export async function updateProject(
+  id: string,
+  data: Partial<ProjectData>
+) {
+  const response = await fetch(`/api/projects/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  })
+  return response.json()
+}
+
+export async function deleteProject(id: string) {
+  const response = await fetch(`/api/projects/${id}`, {
+    method: 'DELETE',
+  })
+  return response.json()
+}
+
+// News API
+export async function getNews() {
+  const response = await fetch('/api/news')
+  return response.json()
+}
+
+export async function createNews(data: NewsData) {
+  const response = await fetch('/api/news', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  })
+  return response.json()
+}
+
+export async function updateNews(id: string, data: Partial<NewsData>) {
+  const response = await fetch(`/api/news/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  })
+  return response.json()
+}
+
+export async function deleteNews(id: string) {
+  const response = await fetch(`/api/news/${id}`, {
+    method: 'DELETE',
+  })
+  return response.json()
+}

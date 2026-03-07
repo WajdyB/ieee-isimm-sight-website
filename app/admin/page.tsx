@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Plus, Edit, Trash2, Upload, Eye, EyeOff, Loader2, Users, Award, Mail, Download, RefreshCw } from "lucide-react"
+import { Plus, Edit, Trash2, Upload, Eye, EyeOff, Loader2, Users, Award, Mail, Download, RefreshCw, Pin } from "lucide-react"
 import Image from "next/image"
 import {
   loginAdmin,
@@ -29,7 +29,17 @@ import {
   deleteAward,
   uploadAwardImage,
   getNewsletterSubscribers,
+  getProjects,
+  createProject,
+  updateProject,
+  deleteProject,
+  getNews,
+  createNews,
+  updateNews,
+  deleteNews,
+  type ProjectData,
   type EventData,
+  type NewsData,
 } from "@/lib/api"
 import { EXCOM_POSITIONS } from "@/lib/excom"
 import { ConfirmDialog } from "@/components/admin/ConfirmDialog"
@@ -41,6 +51,8 @@ interface Event {
   description: string
   date: string
   location: string
+  eventType: "upcoming" | "previous"
+  registrationLink?: string
   attendees: number
   images: string[]
   created_at: string
@@ -83,6 +95,37 @@ interface NewsletterSubscriber {
   subscribedAt: string
 }
 
+interface ProjectItem {
+  _id: string
+  title: string
+  description: string
+  date: string
+  projectType: string
+  customType?: string
+  displayType?: string
+  imageUrl?: string
+  proposalFormUrl?: string
+  status: "Completed" | "In Progress" | "Planned"
+  createdAt?: string
+  updatedAt?: string
+}
+
+interface NewsItem {
+  _id: string
+  title: string
+  summary: string
+  date: string
+  category: NewsData["category"]
+  imageUrl?: string
+  link?: string
+  linkLabel?: string
+  isPinned?: boolean
+  hasDeadline?: boolean
+  deadlineDate?: string
+  createdAt?: string
+  updatedAt?: string
+}
+
 export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [email, setEmail] = useState("")
@@ -95,6 +138,8 @@ export default function AdminPage() {
     description: "",
     date: "",
     location: "",
+    eventType: "previous",
+    registrationLink: "",
     attendees: 0,
     images: [],
   })
@@ -124,6 +169,38 @@ export default function AdminPage() {
   // Newsletter subscribers state
   const [subscribers, setSubscribers] = useState<NewsletterSubscriber[]>([])
 
+  // Projects state
+  const [projects, setProjects] = useState<ProjectItem[]>([])
+  const [newProject, setNewProject] = useState<ProjectData>({
+    title: "",
+    description: "",
+    date: "",
+    projectType: "Tech for Good",
+    customType: "",
+    imageUrl: "",
+    proposalFormUrl: "",
+    status: "Planned",
+  })
+  const [editingProjectId, setEditingProjectId] = useState<string | null>(null)
+  const [editProjectForm, setEditProjectForm] = useState<Partial<ProjectData>>({})
+
+  // News state
+  const [news, setNews] = useState<NewsItem[]>([])
+  const [newNews, setNewNews] = useState<NewsData>({
+    title: "",
+    summary: "",
+    date: "",
+    category: "Announcement",
+    imageUrl: "",
+    link: "",
+    linkLabel: "",
+    isPinned: false,
+    hasDeadline: false,
+    deadlineDate: "",
+  })
+  const [editingNewsId, setEditingNewsId] = useState<string | null>(null)
+  const [editNewsForm, setEditNewsForm] = useState<Partial<NewsData>>({})
+
   const [confirmDialog, setConfirmDialog] = useState<{
     open: boolean
     title: string
@@ -141,6 +218,8 @@ export default function AdminPage() {
       loadMandates()
       loadAwards()
       loadSubscribers()
+      loadProjects()
+      loadNews()
     }
   }, [isAuthenticated])
 
@@ -175,6 +254,28 @@ export default function AdminPage() {
       if (res.success) setAwards(res.data ?? [])
     } catch (e) {
       console.error(e)
+    }
+  }
+
+  const loadProjects = async () => {
+    try {
+      const res = await getProjects()
+      if (res.success) setProjects(res.data ?? [])
+      else setProjects([])
+    } catch (e) {
+      console.error(e)
+      setProjects([])
+    }
+  }
+
+  const loadNews = async () => {
+    try {
+      const res = await getNews()
+      if (res.success) setNews(res.data ?? [])
+      else setNews([])
+    } catch (e) {
+      console.error(e)
+      setNews([])
     }
   }
 
@@ -243,6 +344,17 @@ export default function AdminPage() {
       return
     }
 
+    if (newEvent.eventType === "upcoming") {
+      if (!newEvent.registrationLink?.trim()) {
+        toast.error("Please provide a registration link for upcoming events")
+        return
+      }
+      if (!/^https?:\/\//i.test(newEvent.registrationLink.trim())) {
+        toast.error("Registration link must start with http:// or https://")
+        return
+      }
+    }
+
     try {
       setLoading(true)
       const response = await createEvent(newEvent)
@@ -254,6 +366,8 @@ export default function AdminPage() {
           description: "",
           date: "",
           location: "",
+          eventType: "previous",
+          registrationLink: "",
           attendees: 0,
           images: [],
         })
@@ -403,6 +517,210 @@ export default function AdminPage() {
 
   const handleDeleteMember = (id: string) => openDeleteMemberDialog(id)
 
+  const handleAddProject = async () => {
+    if (!newProject.title || !newProject.description || !newProject.date || !newProject.projectType || !newProject.proposalFormUrl || !newProject.status) {
+      toast.error("Please fill all required project fields")
+      return
+    }
+
+    if (!/^https?:\/\//i.test(newProject.proposalFormUrl.trim())) {
+      toast.error("Please provide a valid proposal form URL starting with http:// or https://")
+      return
+    }
+
+    if (newProject.projectType === "Other" && !newProject.customType?.trim()) {
+      toast.error("Please provide a custom type when selecting Other")
+      return
+    }
+
+    try {
+      setLoading(true)
+      const res = await createProject(newProject)
+      if (res.success) {
+        setProjects([res.data, ...projects])
+        setNewProject({
+          title: "",
+          description: "",
+          date: "",
+          projectType: "Tech for Good",
+          customType: "",
+          imageUrl: "",
+          proposalFormUrl: "",
+          status: "Planned",
+        })
+        toast.success("Project created successfully!")
+      } else {
+        toast.error(res.message || "Failed to create project")
+      }
+    } catch (e) {
+      console.error(e)
+      toast.error("Failed to create project")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleUpdateProject = async () => {
+    if (!editingProjectId) return
+    if (editProjectForm.projectType === "Other" && !editProjectForm.customType?.trim()) {
+      toast.error("Please provide a custom type when selecting Other")
+      return
+    }
+    if (editProjectForm.proposalFormUrl !== undefined && !/^https?:\/\//i.test(editProjectForm.proposalFormUrl.trim())) {
+      toast.error("Please provide a valid proposal form URL starting with http:// or https://")
+      return
+    }
+
+    try {
+      setLoading(true)
+      const res = await updateProject(editingProjectId, editProjectForm)
+      if (res.success) {
+        setProjects(projects.map((project) => (project._id === editingProjectId ? { ...project, ...res.data } : project)))
+        setEditingProjectId(null)
+        setEditProjectForm({})
+        toast.success("Project updated successfully!")
+      } else {
+        toast.error(res.message || "Failed to update project")
+      }
+    } catch (e) {
+      console.error(e)
+      toast.error("Failed to update project")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const openDeleteProjectDialog = (id: string) => {
+    setConfirmDialog({
+      open: true,
+      title: "Delete project",
+      description: "Are you sure you want to delete this project?",
+      confirmLabel: "Delete",
+      variant: "destructive",
+      onConfirm: async () => {
+        try {
+          setConfirmLoading(true)
+          const res = await deleteProject(id)
+          if (res.success) {
+            setProjects(projects.filter((project) => project._id !== id))
+            toast.success("Project deleted successfully!")
+          } else {
+            toast.error(res.message || "Failed to delete project")
+          }
+        } catch (e) {
+          console.error(e)
+          toast.error("Failed to delete project")
+        } finally {
+          setConfirmLoading(false)
+        }
+      },
+    })
+  }
+
+  const handleAddNews = async () => {
+    if (!newNews.title || !newNews.summary || !newNews.date || !newNews.category) {
+      toast.error("Please fill all required news fields")
+      return
+    }
+
+    if (newNews.link?.trim() && !/^https?:\/\//i.test(newNews.link.trim())) {
+      toast.error("Please provide a valid link starting with http:// or https://")
+      return
+    }
+
+    if (newNews.hasDeadline && !newNews.deadlineDate?.trim()) {
+      toast.error("Please provide a deadline date when deadline mode is enabled")
+      return
+    }
+
+    try {
+      setLoading(true)
+      const res = await createNews(newNews)
+      if (res.success) {
+        setNews([res.data, ...news])
+        setNewNews({
+          title: "",
+          summary: "",
+          date: "",
+          category: "Announcement",
+          imageUrl: "",
+          link: "",
+          linkLabel: "",
+          isPinned: false,
+          hasDeadline: false,
+          deadlineDate: "",
+        })
+        toast.success("News item created successfully!")
+      } else {
+        toast.error(res.message || "Failed to create news item")
+      }
+    } catch (e) {
+      console.error(e)
+      toast.error("Failed to create news item")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleUpdateNews = async () => {
+    if (!editingNewsId) return
+
+    if (editNewsForm.link !== undefined && editNewsForm.link.trim() && !/^https?:\/\//i.test(editNewsForm.link.trim())) {
+      toast.error("Please provide a valid link starting with http:// or https://")
+      return
+    }
+
+    if (editNewsForm.hasDeadline && !editNewsForm.deadlineDate?.trim()) {
+      toast.error("Please provide a deadline date when deadline mode is enabled")
+      return
+    }
+
+    try {
+      setLoading(true)
+      const res = await updateNews(editingNewsId, editNewsForm)
+      if (res.success) {
+        setNews(news.map((item) => (item._id === editingNewsId ? { ...item, ...res.data } : item)))
+        setEditingNewsId(null)
+        setEditNewsForm({})
+        toast.success("News item updated successfully!")
+      } else {
+        toast.error(res.message || "Failed to update news item")
+      }
+    } catch (e) {
+      console.error(e)
+      toast.error("Failed to update news item")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const openDeleteNewsDialog = (id: string) => {
+    setConfirmDialog({
+      open: true,
+      title: "Delete news item",
+      description: "Are you sure you want to delete this news item?",
+      confirmLabel: "Delete",
+      variant: "destructive",
+      onConfirm: async () => {
+        try {
+          setConfirmLoading(true)
+          const res = await deleteNews(id)
+          if (res.success) {
+            setNews(news.filter((item) => item._id !== id))
+            toast.success("News item deleted successfully!")
+          } else {
+            toast.error(res.message || "Failed to delete news item")
+          }
+        } catch (e) {
+          console.error(e)
+          toast.error("Failed to delete news item")
+        } finally {
+          setConfirmLoading(false)
+        }
+      },
+    })
+  }
+
   const handleAddAward = async () => {
     if (!newAward.title || !newAward.year) {
       toast.error("Please fill title and year")
@@ -486,6 +804,67 @@ export default function AdminPage() {
     } catch (err) {
       console.error(err)
       toast.error("Upload failed")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const uploadSingleImage = async (file?: File | null) => {
+    if (!file) return null
+
+    const uploadResponse = await uploadImages([file])
+    if (!uploadResponse.success) {
+      throw new Error(uploadResponse.message || "Upload failed")
+    }
+
+    const firstFileUrl = uploadResponse.files?.[0]?.url
+    const firstCompatUrl = uploadResponse.urls?.[0]
+    return firstFileUrl || firstCompatUrl || null
+  }
+
+  const handleProjectImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, forEdit = false) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    try {
+      setLoading(true)
+      const imageUrl = await uploadSingleImage(file)
+      if (!imageUrl) {
+        toast.error("Upload failed")
+        return
+      }
+
+      if (forEdit) setEditProjectForm((prev) => ({ ...prev, imageUrl }))
+      else setNewProject((prev) => ({ ...prev, imageUrl }))
+
+      toast.success("Image uploaded")
+    } catch (error) {
+      console.error(error)
+      toast.error("Failed to upload image")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleNewsImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, forEdit = false) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    try {
+      setLoading(true)
+      const imageUrl = await uploadSingleImage(file)
+      if (!imageUrl) {
+        toast.error("Upload failed")
+        return
+      }
+
+      if (forEdit) setEditNewsForm((prev) => ({ ...prev, imageUrl }))
+      else setNewNews((prev) => ({ ...prev, imageUrl }))
+
+      toast.success("Image uploaded")
+    } catch (error) {
+      console.error(error)
+      toast.error("Failed to upload image")
     } finally {
       setLoading(false)
     }
@@ -597,6 +976,8 @@ export default function AdminPage() {
           <TabsList className="flex flex-wrap gap-2">
             <TabsTrigger value="events">Manage Events</TabsTrigger>
             <TabsTrigger value="add-event">Add New Event</TabsTrigger>
+            <TabsTrigger value="projects">Manage Projects</TabsTrigger>
+            <TabsTrigger value="news">Manage News</TabsTrigger>
             <TabsTrigger value="excom">Manage Excom</TabsTrigger>
             <TabsTrigger value="awards">Manage Awards</TabsTrigger>
             <TabsTrigger value="newsletter">Newsletter</TabsTrigger>
@@ -618,6 +999,11 @@ export default function AdminPage() {
                         <div className="text-sm text-gray-500">
                           <span>
                             {event.date} • {event.location} • {event.attendees} attendees
+                          </span>
+                        </div>
+                        <div className="mt-2">
+                          <span className="inline-flex rounded-full border px-2 py-1 text-xs font-medium text-red-700 border-red-200 bg-red-50 capitalize">
+                            {event.eventType || "previous"}
                           </span>
                         </div>
                       </div>
@@ -679,6 +1065,39 @@ export default function AdminPage() {
                   </div>
                 </div>
                 <div className="space-y-2">
+                  <Label htmlFor="eventType">Event Type</Label>
+                  <Select
+                    value={newEvent.eventType}
+                    onValueChange={(value) =>
+                      setNewEvent({
+                        ...newEvent,
+                        eventType: value as EventData["eventType"],
+                        registrationLink: value === "upcoming" ? newEvent.registrationLink : "",
+                      })
+                    }
+                  >
+                    <SelectTrigger id="eventType">
+                      <SelectValue placeholder="Select event type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="upcoming">Upcoming</SelectItem>
+                      <SelectItem value="previous">Previous</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                {newEvent.eventType === "upcoming" && (
+                  <div className="space-y-2">
+                    <Label htmlFor="registrationLink">Registration Link</Label>
+                    <Input
+                      id="registrationLink"
+                      type="url"
+                      value={newEvent.registrationLink ?? ""}
+                      onChange={(e) => setNewEvent({ ...newEvent, registrationLink: e.target.value })}
+                      placeholder="https://..."
+                    />
+                  </div>
+                )}
+                <div className="space-y-2">
                   <Label htmlFor="attendees">Number of Attendees</Label>
                   <Input
                     id="attendees"
@@ -736,6 +1155,656 @@ export default function AdminPage() {
                 </Button>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="projects" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Add New Project</CardTitle>
+                <CardDescription>
+                  Create a project with type, timeline, and status for the Projects page.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Project Title *</Label>
+                  <Input
+                    value={newProject.title}
+                    onChange={(e) => setNewProject({ ...newProject, title: e.target.value })}
+                    placeholder="Enter project title"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Description *</Label>
+                  <Textarea
+                    value={newProject.description}
+                    onChange={(e) => setNewProject({ ...newProject, description: e.target.value })}
+                    placeholder="Describe the project"
+                    rows={4}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Project Image (Optional)</Label>
+                  <div className="flex items-center gap-4">
+                    {newProject.imageUrl ? (
+                      <div className="relative">
+                        <Image src={newProject.imageUrl} alt="Project preview" width={100} height={100} className="rounded object-cover" />
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          className="absolute -top-2 -right-2 h-6 w-6 p-0"
+                          onClick={() => setNewProject({ ...newProject, imageUrl: "" })}
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    ) : null}
+                    <Input type="file" accept="image/*" onChange={(e) => handleProjectImageUpload(e)} disabled={loading} />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Proposal Form URL *</Label>
+                  <Input
+                    value={newProject.proposalFormUrl}
+                    onChange={(e) => setNewProject({ ...newProject, proposalFormUrl: e.target.value })}
+                    placeholder="https://docs.google.com/forms/..."
+                  />
+                </div>
+
+                <div className="grid sm:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label>Date *</Label>
+                    <Input
+                      type="date"
+                      value={newProject.date}
+                      onChange={(e) => setNewProject({ ...newProject, date: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Project Type *</Label>
+                    <Select
+                      value={newProject.projectType}
+                      onValueChange={(value) => setNewProject({ ...newProject, projectType: value as ProjectData["projectType"] })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Tech for Good">Tech for Good</SelectItem>
+                        <SelectItem value="TSYP">TSYP</SelectItem>
+                        <SelectItem value="SDC">SDC</SelectItem>
+                        <SelectItem value="Other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Status *</Label>
+                    <Select
+                      value={newProject.status}
+                      onValueChange={(value) => setNewProject({ ...newProject, status: value as ProjectData["status"] })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Planned">Planned</SelectItem>
+                        <SelectItem value="In Progress">In Progress</SelectItem>
+                        <SelectItem value="Completed">Completed</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                {newProject.projectType === "Other" && (
+                  <div className="space-y-2">
+                    <Label>Custom Type *</Label>
+                    <Input
+                      value={newProject.customType ?? ""}
+                      onChange={(e) => setNewProject({ ...newProject, customType: e.target.value })}
+                      placeholder="Write your custom project type"
+                    />
+                  </div>
+                )}
+
+                <Button onClick={handleAddProject} disabled={loading}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Project
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>All Projects</CardTitle>
+                <CardDescription>Manage published projects</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {projects.length === 0 ? (
+                    <p className="text-gray-500">No projects added yet.</p>
+                  ) : (
+                    projects.map((project) => (
+                      <div key={project._id} className="border rounded-lg p-4 flex items-center justify-between gap-4">
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-lg">{project.title}</h3>
+                          <p className="text-sm text-gray-600 line-clamp-2">{project.description}</p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            {new Date(project.date).toLocaleDateString()} • {project.displayType || project.customType || project.projectType}
+                          </p>
+                          <div className="mt-2">
+                            <span className="inline-flex rounded-full border px-2 py-1 text-xs font-medium text-red-700 border-red-200 bg-red-50">
+                              {project.status}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              setEditingProjectId(project._id)
+                              setEditProjectForm({
+                                title: project.title,
+                                description: project.description,
+                                date: project.date,
+                                projectType: (project.projectType || "Tech for Good") as ProjectData["projectType"],
+                                customType: project.customType || "",
+                                imageUrl: project.imageUrl || "",
+                                proposalFormUrl: project.proposalFormUrl || "",
+                                status: project.status,
+                              })
+                            }}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button size="sm" variant="destructive" onClick={() => openDeleteProjectDialog(project._id)}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {editingProjectId && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Edit Project</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>Project Title</Label>
+                    <Input
+                      value={editProjectForm.title ?? ""}
+                      onChange={(e) => setEditProjectForm({ ...editProjectForm, title: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Description</Label>
+                    <Textarea
+                      value={editProjectForm.description ?? ""}
+                      onChange={(e) => setEditProjectForm({ ...editProjectForm, description: e.target.value })}
+                      rows={4}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Project Image</Label>
+                    <div className="flex items-center gap-4">
+                      {editProjectForm.imageUrl ? (
+                        <div className="relative">
+                          <Image src={editProjectForm.imageUrl} alt="Project preview" width={100} height={100} className="rounded object-cover" />
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            className="absolute -top-2 -right-2 h-6 w-6 p-0"
+                            onClick={() => setEditProjectForm({ ...editProjectForm, imageUrl: "" })}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ) : null}
+                      <Input type="file" accept="image/*" onChange={(e) => handleProjectImageUpload(e, true)} disabled={loading} />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Proposal Form URL</Label>
+                    <Input
+                      value={editProjectForm.proposalFormUrl ?? ""}
+                      onChange={(e) => setEditProjectForm({ ...editProjectForm, proposalFormUrl: e.target.value })}
+                      placeholder="https://docs.google.com/forms/..."
+                    />
+                  </div>
+
+                  <div className="grid sm:grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <Label>Date</Label>
+                      <Input
+                        type="date"
+                        value={editProjectForm.date ?? ""}
+                        onChange={(e) => setEditProjectForm({ ...editProjectForm, date: e.target.value })}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Type</Label>
+                      <Select
+                        value={editProjectForm.projectType ?? "Tech for Good"}
+                        onValueChange={(value) =>
+                          setEditProjectForm({ ...editProjectForm, projectType: value as ProjectData["projectType"] })
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Tech for Good">Tech for Good</SelectItem>
+                          <SelectItem value="TSYP">TSYP</SelectItem>
+                          <SelectItem value="SDC">SDC</SelectItem>
+                          <SelectItem value="Other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Status</Label>
+                      <Select
+                        value={editProjectForm.status ?? "Planned"}
+                        onValueChange={(value) =>
+                          setEditProjectForm({ ...editProjectForm, status: value as ProjectData["status"] })
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Planned">Planned</SelectItem>
+                          <SelectItem value="In Progress">In Progress</SelectItem>
+                          <SelectItem value="Completed">Completed</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  {editProjectForm.projectType === "Other" && (
+                    <div className="space-y-2">
+                      <Label>Custom Type</Label>
+                      <Input
+                        value={editProjectForm.customType ?? ""}
+                        onChange={(e) => setEditProjectForm({ ...editProjectForm, customType: e.target.value })}
+                        placeholder="Write your custom project type"
+                      />
+                    </div>
+                  )}
+
+                  <div className="flex gap-2">
+                    <Button onClick={handleUpdateProject} disabled={loading}>
+                      Save
+                    </Button>
+                    <Button variant="outline" onClick={() => setEditingProjectId(null)}>
+                      Cancel
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
+          <TabsContent value="news" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Add News Item</CardTitle>
+                <CardDescription>
+                  Publish announcements, opportunities, impact stories, and calls for volunteers.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Title *</Label>
+                  <Input
+                    value={newNews.title}
+                    onChange={(e) => setNewNews({ ...newNews, title: e.target.value })}
+                    placeholder="e.g., Open Call: Project Lead Volunteers"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Summary *</Label>
+                  <Textarea
+                    value={newNews.summary}
+                    onChange={(e) => setNewNews({ ...newNews, summary: e.target.value })}
+                    placeholder="Write a short news summary..."
+                    rows={4}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>News Image (Optional)</Label>
+                  <div className="flex items-center gap-4">
+                    {newNews.imageUrl ? (
+                      <div className="relative">
+                        <Image src={newNews.imageUrl} alt="News preview" width={100} height={100} className="rounded object-cover" />
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          className="absolute -top-2 -right-2 h-6 w-6 p-0"
+                          onClick={() => setNewNews({ ...newNews, imageUrl: "" })}
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    ) : null}
+                    <Input type="file" accept="image/*" onChange={(e) => handleNewsImageUpload(e)} disabled={loading} />
+                  </div>
+                </div>
+
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Date *</Label>
+                    <Input
+                      type="date"
+                      value={newNews.date}
+                      onChange={(e) => setNewNews({ ...newNews, date: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Category *</Label>
+                    <Select
+                      value={newNews.category}
+                      onValueChange={(value) => setNewNews({ ...newNews, category: value as NewsData["category"] })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Announcement">Announcement</SelectItem>
+                        <SelectItem value="Opportunity">Opportunity</SelectItem>
+                        <SelectItem value="Impact Story">Impact Story</SelectItem>
+                        <SelectItem value="Partnership">Partnership</SelectItem>
+                        <SelectItem value="Call for Volunteers">Call for Volunteers</SelectItem>
+                        <SelectItem value="Event Update">Event Update</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Optional Link</Label>
+                    <Input
+                      type="url"
+                      value={newNews.link ?? ""}
+                      onChange={(e) => setNewNews({ ...newNews, link: e.target.value })}
+                      placeholder="https://..."
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Link Button Text (Optional)</Label>
+                    <Input
+                      value={newNews.linkLabel ?? ""}
+                      onChange={(e) => setNewNews({ ...newNews, linkLabel: e.target.value })}
+                      placeholder="e.g., Apply Now"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <input
+                    id="deadline-news"
+                    type="checkbox"
+                    checked={Boolean(newNews.hasDeadline)}
+                    onChange={(e) =>
+                      setNewNews({
+                        ...newNews,
+                        hasDeadline: e.target.checked,
+                        deadlineDate: e.target.checked ? newNews.deadlineDate : "",
+                      })
+                    }
+                  />
+                  <Label htmlFor="deadline-news">This news item has a deadline</Label>
+                </div>
+
+                {newNews.hasDeadline && (
+                  <div className="space-y-2">
+                    <Label>Deadline Date *</Label>
+                    <Input
+                      type="date"
+                      value={newNews.deadlineDate ?? ""}
+                      onChange={(e) => setNewNews({ ...newNews, deadlineDate: e.target.value })}
+                    />
+                  </div>
+                )}
+
+                <div className="flex items-center gap-2">
+                  <input
+                    id="pin-news"
+                    type="checkbox"
+                    checked={Boolean(newNews.isPinned)}
+                    onChange={(e) => setNewNews({ ...newNews, isPinned: e.target.checked })}
+                  />
+                  <Label htmlFor="pin-news">Pin this news item to the top</Label>
+                </div>
+
+                <Button onClick={handleAddNews} disabled={loading}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add News
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>All News</CardTitle>
+                <CardDescription>Manage what appears on the News page</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {news.length === 0 ? (
+                    <p className="text-gray-500">No news items added yet.</p>
+                  ) : (
+                    news.map((item) => (
+                      <div key={item._id} className="border rounded-lg p-4 flex items-center justify-between gap-4">
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-lg flex items-center gap-2">
+                            {item.title}
+                            {item.isPinned ? <Pin className="h-4 w-4 text-red-700" /> : null}
+                          </h3>
+                          <p className="text-sm text-gray-600 line-clamp-2">{item.summary}</p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            {new Date(item.date).toLocaleDateString()} • {item.category}
+                          </p>
+                          {item.hasDeadline && item.deadlineDate ? (
+                            <p className="text-xs text-amber-700 mt-1">Deadline: {new Date(item.deadlineDate).toLocaleDateString()}</p>
+                          ) : null}
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              setEditingNewsId(item._id)
+                              setEditNewsForm({
+                                title: item.title,
+                                summary: item.summary,
+                                date: item.date,
+                                category: item.category,
+                                imageUrl: item.imageUrl || "",
+                                link: item.link || "",
+                                linkLabel: item.linkLabel || "",
+                                isPinned: Boolean(item.isPinned),
+                                hasDeadline: Boolean(item.hasDeadline),
+                                deadlineDate: item.deadlineDate || "",
+                              })
+                            }}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button size="sm" variant="destructive" onClick={() => openDeleteNewsDialog(item._id)}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {editingNewsId && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Edit News Item</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>Title</Label>
+                    <Input
+                      value={editNewsForm.title ?? ""}
+                      onChange={(e) => setEditNewsForm({ ...editNewsForm, title: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Summary</Label>
+                    <Textarea
+                      value={editNewsForm.summary ?? ""}
+                      onChange={(e) => setEditNewsForm({ ...editNewsForm, summary: e.target.value })}
+                      rows={4}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>News Image</Label>
+                    <div className="flex items-center gap-4">
+                      {editNewsForm.imageUrl ? (
+                        <div className="relative">
+                          <Image src={editNewsForm.imageUrl} alt="News preview" width={100} height={100} className="rounded object-cover" />
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            className="absolute -top-2 -right-2 h-6 w-6 p-0"
+                            onClick={() => setEditNewsForm({ ...editNewsForm, imageUrl: "" })}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ) : null}
+                      <Input type="file" accept="image/*" onChange={(e) => handleNewsImageUpload(e, true)} disabled={loading} />
+                    </div>
+                  </div>
+
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Date</Label>
+                      <Input
+                        type="date"
+                        value={editNewsForm.date ?? ""}
+                        onChange={(e) => setEditNewsForm({ ...editNewsForm, date: e.target.value })}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Category</Label>
+                      <Select
+                        value={editNewsForm.category ?? "Announcement"}
+                        onValueChange={(value) =>
+                          setEditNewsForm({ ...editNewsForm, category: value as NewsData["category"] })
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Announcement">Announcement</SelectItem>
+                          <SelectItem value="Opportunity">Opportunity</SelectItem>
+                          <SelectItem value="Impact Story">Impact Story</SelectItem>
+                          <SelectItem value="Partnership">Partnership</SelectItem>
+                          <SelectItem value="Call for Volunteers">Call for Volunteers</SelectItem>
+                          <SelectItem value="Event Update">Event Update</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Optional Link</Label>
+                      <Input
+                        value={editNewsForm.link ?? ""}
+                        onChange={(e) => setEditNewsForm({ ...editNewsForm, link: e.target.value })}
+                        placeholder="https://..."
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Link Button Text</Label>
+                      <Input
+                        value={editNewsForm.linkLabel ?? ""}
+                        onChange={(e) => setEditNewsForm({ ...editNewsForm, linkLabel: e.target.value })}
+                        placeholder="e.g., Register"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <input
+                      id="edit-deadline-news"
+                      type="checkbox"
+                      checked={Boolean(editNewsForm.hasDeadline)}
+                      onChange={(e) =>
+                        setEditNewsForm({
+                          ...editNewsForm,
+                          hasDeadline: e.target.checked,
+                          deadlineDate: e.target.checked ? editNewsForm.deadlineDate : "",
+                        })
+                      }
+                    />
+                    <Label htmlFor="edit-deadline-news">This news item has a deadline</Label>
+                  </div>
+
+                  {editNewsForm.hasDeadline && (
+                    <div className="space-y-2">
+                      <Label>Deadline Date</Label>
+                      <Input
+                        type="date"
+                        value={editNewsForm.deadlineDate ?? ""}
+                        onChange={(e) => setEditNewsForm({ ...editNewsForm, deadlineDate: e.target.value })}
+                      />
+                    </div>
+                  )}
+
+                  <div className="flex items-center gap-2">
+                    <input
+                      id="edit-pin-news"
+                      type="checkbox"
+                      checked={Boolean(editNewsForm.isPinned)}
+                      onChange={(e) => setEditNewsForm({ ...editNewsForm, isPinned: e.target.checked })}
+                    />
+                    <Label htmlFor="edit-pin-news">Pin this news item</Label>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <Button onClick={handleUpdateNews} disabled={loading}>
+                      Save
+                    </Button>
+                    <Button variant="outline" onClick={() => setEditingNewsId(null)}>
+                      Cancel
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
 
           <TabsContent value="excom" className="space-y-6">
