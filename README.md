@@ -28,6 +28,21 @@ This website serves as the digital home for SIGHT ISIMM, showcasing our commitme
 - Showcases our workshops, conferences, and community projects
 - Photo galleries and event descriptions
 - Information about upcoming activities
+- Upcoming/previous event sections with registration links for upcoming events
+
+**Projects**
+- Dynamic showcase of SIGHT ISIMM projects
+- Filtering by status, type, and search
+- Project proposal links per project card
+
+**News**
+- Dynamic newsroom for announcements, opportunities, and updates
+- Optional deadline-based labels (`Open` / `Closed`) when relevant
+- Quick filter for open opportunities
+
+**Awards**
+- Highlights of awards and recognitions
+- Year, description, and optional image support
 
 **Sustainable Development Goals (SDGs)**
 - Interactive showcase of the 17 UN SDGs
@@ -36,8 +51,9 @@ This website serves as the digital home for SIGHT ISIMM, showcasing our commitme
 - Beautiful, color-coded presentation of each goal
 
 **Admin Panel**
-- Secure event management system
-- Upload and manage event information and images
+- Secure content management system for events, projects, news, awards, and team data
+- Upload and manage optional images for events, projects, news, awards, and excom members
+- Manage project proposals and deadline-based news items
 - For authorized committee members only
 
 ## Our Mission
