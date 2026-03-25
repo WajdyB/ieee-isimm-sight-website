@@ -19,6 +19,7 @@ import {
   uploadImages,
   getMandates,
   createMandate,
+  updateMandate,
   getExcom,
   createExcomMember,
   updateExcomMember,
@@ -27,7 +28,6 @@ import {
   getAwards,
   createAward,
   deleteAward,
-  uploadAwardImage,
   getNewsletterSubscribers,
   getProjects,
   createProject,
@@ -86,6 +86,7 @@ interface AwardItem {
   title: string
   year: number
   description: string
+  imageUrls?: string[]
   imageUrl?: string
 }
 
@@ -103,6 +104,7 @@ interface ProjectItem {
   projectType: string
   customType?: string
   displayType?: string
+  imageUrls?: string[]
   imageUrl?: string
   proposalFormUrl?: string
   status: "Completed" | "In Progress" | "Planned"
@@ -116,6 +118,7 @@ interface NewsItem {
   summary: string
   date: string
   category: NewsData["category"]
+  imageUrls?: string[]
   imageUrl?: string
   link?: string
   linkLabel?: string
@@ -149,6 +152,13 @@ export default function AdminPage() {
   const [excomMembers, setExcomMembers] = useState<ExcomMember[]>([])
   const [selectedMandateId, setSelectedMandateId] = useState<string>("")
   const [newMandate, setNewMandate] = useState<{ name: string; startYear: number | ""; endYear: number | ""; isCurrent: boolean }>({ name: "", startYear: "", endYear: "", isCurrent: false })
+  const [editingMandateId, setEditingMandateId] = useState<string | null>(null)
+  const [editMandateForm, setEditMandateForm] = useState<{ name: string; startYear: number | ""; endYear: number | ""; isCurrent: boolean }>({
+    name: "",
+    startYear: "",
+    endYear: "",
+    isCurrent: false,
+  })
   const [newMember, setNewMember] = useState({
     name: "",
     position: "Chairman" as string,
@@ -164,7 +174,7 @@ export default function AdminPage() {
 
   // Awards state
   const [awards, setAwards] = useState<AwardItem[]>([])
-  const [newAward, setNewAward] = useState({ title: "", year: new Date().getFullYear(), description: "", imageUrl: "" })
+  const [newAward, setNewAward] = useState({ title: "", year: new Date().getFullYear(), description: "", imageUrls: [] as string[] })
 
   // Newsletter subscribers state
   const [subscribers, setSubscribers] = useState<NewsletterSubscriber[]>([])
@@ -177,7 +187,7 @@ export default function AdminPage() {
     date: "",
     projectType: "Tech for Good",
     customType: "",
-    imageUrl: "",
+    imageUrls: [],
     proposalFormUrl: "",
     status: "Planned",
   })
@@ -191,7 +201,7 @@ export default function AdminPage() {
     summary: "",
     date: "",
     category: "Announcement",
-    imageUrl: "",
+    imageUrls: [],
     link: "",
     linkLabel: "",
     isPinned: false,
@@ -436,6 +446,55 @@ export default function AdminPage() {
     }
   }
 
+  const handleStartEditMandate = () => {
+    const mandate = mandates.find((m) => m._id === selectedMandateId)
+    if (!mandate) return
+
+    setEditingMandateId(mandate._id)
+    setEditMandateForm({
+      name: mandate.name,
+      startYear: mandate.startYear,
+      endYear: mandate.endYear,
+      isCurrent: Boolean(mandate.isCurrent),
+    })
+  }
+
+  const handleUpdateMandate = async () => {
+    if (!editingMandateId) return
+
+    const startYear = editMandateForm.startYear === "" ? undefined : Number(editMandateForm.startYear)
+    const endYear = editMandateForm.endYear === "" ? undefined : Number(editMandateForm.endYear)
+
+    if (!editMandateForm.name.trim() || startYear === undefined || endYear === undefined) {
+      toast.error("Please fill name, start year, and end year")
+      return
+    }
+
+    try {
+      setLoading(true)
+      const res = await updateMandate(editingMandateId, {
+        name: editMandateForm.name.trim(),
+        startYear,
+        endYear,
+        isCurrent: editMandateForm.isCurrent,
+      })
+
+      if (res.success) {
+        await loadMandates()
+        setEditingMandateId(null)
+        setEditMandateForm({ name: "", startYear: "", endYear: "", isCurrent: false })
+        toast.success("Mandate updated successfully!")
+      } else {
+        toast.error(res.message || "Failed to update mandate")
+      }
+    } catch (e) {
+      console.error(e)
+      toast.error("Failed to update mandate")
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const handleAddMember = async () => {
     if (!selectedMandateId || !newMember.name || !newMember.position || !newMember.email) {
       toast.error("Please fill name, position, and email")
@@ -544,7 +603,7 @@ export default function AdminPage() {
           date: "",
           projectType: "Tech for Good",
           customType: "",
-          imageUrl: "",
+          imageUrls: [],
           proposalFormUrl: "",
           status: "Planned",
         })
@@ -643,7 +702,7 @@ export default function AdminPage() {
           summary: "",
           date: "",
           category: "Announcement",
-          imageUrl: "",
+          imageUrls: [],
           link: "",
           linkLabel: "",
           isPinned: false,
@@ -732,11 +791,11 @@ export default function AdminPage() {
         title: newAward.title,
         year: Number(newAward.year),
         description: newAward.description,
-        imageUrl: newAward.imageUrl,
+        imageUrls: newAward.imageUrls,
       })
       if (res.success) {
         setAwards([res.data, ...awards])
-        setNewAward({ title: "", year: new Date().getFullYear(), description: "", imageUrl: "" })
+        setNewAward({ title: "", year: new Date().getFullYear(), description: "", imageUrls: [] })
         toast.success("Award added successfully!")
       } else toast.error(res.message || "Failed to add award")
     } catch (e) {
@@ -773,15 +832,19 @@ export default function AdminPage() {
   }
 
   const handleAwardImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
+    const files = e.target.files
+    if (!files || files.length === 0) return
     try {
       setLoading(true)
-      const res = await uploadAwardImage(file)
-      if (res.success) {
-        setNewAward({ ...newAward, imageUrl: res.url })
-        toast.success("Image uploaded")
-      } else toast.error(res.message || "Upload failed")
+      const uploadResponse = await uploadImages(Array.from(files))
+      if (!uploadResponse.success) {
+        toast.error(uploadResponse.message || "Upload failed")
+        return
+      }
+
+      const uploadedUrls = (uploadResponse.files || []).map((file: { url: string }) => file.url)
+      setNewAward((prev) => ({ ...prev, imageUrls: [...(prev.imageUrls || []), ...uploadedUrls] }))
+      toast.success("Images uploaded")
     } catch (err) {
       console.error(err)
       toast.error("Upload failed")
@@ -809,35 +872,40 @@ export default function AdminPage() {
     }
   }
 
-  const uploadSingleImage = async (file?: File | null) => {
-    if (!file) return null
+  const uploadMultipleImages = async (files: FileList | File[] | null | undefined) => {
+    if (!files || (Array.isArray(files) ? files.length === 0 : files.length === 0)) return []
 
-    const uploadResponse = await uploadImages([file])
+    const fileArray = Array.isArray(files) ? files : Array.from(files)
+    const uploadResponse = await uploadImages(fileArray)
     if (!uploadResponse.success) {
       throw new Error(uploadResponse.message || "Upload failed")
     }
 
-    const firstFileUrl = uploadResponse.files?.[0]?.url
-    const firstCompatUrl = uploadResponse.urls?.[0]
-    return firstFileUrl || firstCompatUrl || null
+    return (uploadResponse.files || []).map((file: { url: string }) => file.url)
   }
 
   const handleProjectImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, forEdit = false) => {
-    const file = e.target.files?.[0]
-    if (!file) return
+    const files = e.target.files
+    if (!files || files.length === 0) return
 
     try {
       setLoading(true)
-      const imageUrl = await uploadSingleImage(file)
-      if (!imageUrl) {
+      const uploadedUrls = await uploadMultipleImages(files)
+      if (uploadedUrls.length === 0) {
         toast.error("Upload failed")
         return
       }
 
-      if (forEdit) setEditProjectForm((prev) => ({ ...prev, imageUrl }))
-      else setNewProject((prev) => ({ ...prev, imageUrl }))
+      if (forEdit) {
+        setEditProjectForm((prev) => {
+          const existing = prev.imageUrls || []
+          return { ...prev, imageUrls: [...existing, ...uploadedUrls] }
+        })
+      } else {
+        setNewProject((prev) => ({ ...prev, imageUrls: [...(prev.imageUrls || []), ...uploadedUrls] }))
+      }
 
-      toast.success("Image uploaded")
+      toast.success("Images uploaded")
     } catch (error) {
       console.error(error)
       toast.error("Failed to upload image")
@@ -847,21 +915,27 @@ export default function AdminPage() {
   }
 
   const handleNewsImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, forEdit = false) => {
-    const file = e.target.files?.[0]
-    if (!file) return
+    const files = e.target.files
+    if (!files || files.length === 0) return
 
     try {
       setLoading(true)
-      const imageUrl = await uploadSingleImage(file)
-      if (!imageUrl) {
+      const uploadedUrls = await uploadMultipleImages(files)
+      if (uploadedUrls.length === 0) {
         toast.error("Upload failed")
         return
       }
 
-      if (forEdit) setEditNewsForm((prev) => ({ ...prev, imageUrl }))
-      else setNewNews((prev) => ({ ...prev, imageUrl }))
+      if (forEdit) {
+        setEditNewsForm((prev) => {
+          const existing = prev.imageUrls || []
+          return { ...prev, imageUrls: [...existing, ...uploadedUrls] }
+        })
+      } else {
+        setNewNews((prev) => ({ ...prev, imageUrls: [...(prev.imageUrls || []), ...uploadedUrls] }))
+      }
 
-      toast.success("Image uploaded")
+      toast.success("Images uploaded")
     } catch (error) {
       console.error(error)
       toast.error("Failed to upload image")
@@ -906,6 +980,43 @@ export default function AdminPage() {
       ...newEvent,
       images: (newEvent.images || []).filter((_, i) => i !== index),
     })
+  }
+
+  const removeProjectImage = (index: number, forEdit = false) => {
+    if (forEdit) {
+      setEditProjectForm((prev) => {
+        const existing = prev.imageUrls || []
+        return { ...prev, imageUrls: existing.filter((_, i) => i !== index) }
+      })
+      return
+    }
+
+    setNewProject((prev) => ({
+      ...prev,
+      imageUrls: (prev.imageUrls || []).filter((_, i) => i !== index),
+    }))
+  }
+
+  const removeNewsImage = (index: number, forEdit = false) => {
+    if (forEdit) {
+      setEditNewsForm((prev) => {
+        const existing = prev.imageUrls || []
+        return { ...prev, imageUrls: existing.filter((_, i) => i !== index) }
+      })
+      return
+    }
+
+    setNewNews((prev) => ({
+      ...prev,
+      imageUrls: (prev.imageUrls || []).filter((_, i) => i !== index),
+    }))
+  }
+
+  const removeAwardImage = (index: number) => {
+    setNewAward((prev) => ({
+      ...prev,
+      imageUrls: (prev.imageUrls || []).filter((_, i) => i !== index),
+    }))
   }
 
   if (!isAuthenticated) {
@@ -1186,22 +1297,27 @@ export default function AdminPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Project Image (Optional)</Label>
-                  <div className="flex items-center gap-4">
-                    {newProject.imageUrl ? (
-                      <div className="relative">
-                        <Image src={newProject.imageUrl} alt="Project preview" width={100} height={100} className="rounded object-cover" />
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          className="absolute -top-2 -right-2 h-6 w-6 p-0"
-                          onClick={() => setNewProject({ ...newProject, imageUrl: "" })}
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    ) : null}
-                    <Input type="file" accept="image/*" onChange={(e) => handleProjectImageUpload(e)} disabled={loading} />
+                  <Label>Project Images (Optional)</Label>
+                  {(newProject.imageUrls || []).length > 0 ? (
+                    <div className="grid grid-cols-3 gap-3">
+                      {(newProject.imageUrls || []).map((url, index) => (
+                        <div key={`${url}-${index}`} className="relative">
+                          <Image src={url} alt={`Project preview ${index + 1}`} width={100} height={100} className="rounded object-cover w-full h-24" />
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            className="absolute -top-2 -right-2 h-6 w-6 p-0"
+                            onClick={() => removeProjectImage(index)}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
+                  <div className="flex items-center gap-2">
+                    <Input type="file" multiple accept="image/*" onChange={(e) => handleProjectImageUpload(e)} disabled={loading} />
+                    {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
                   </div>
                 </div>
 
@@ -1314,7 +1430,9 @@ export default function AdminPage() {
                                 date: project.date,
                                 projectType: (project.projectType || "Tech for Good") as ProjectData["projectType"],
                                 customType: project.customType || "",
-                                imageUrl: project.imageUrl || "",
+                                imageUrls: (project.imageUrls && project.imageUrls.length > 0)
+                                  ? project.imageUrls
+                                  : (project.imageUrl ? [project.imageUrl] : []),
                                 proposalFormUrl: project.proposalFormUrl || "",
                                 status: project.status,
                               })
@@ -1357,22 +1475,27 @@ export default function AdminPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Project Image</Label>
-                    <div className="flex items-center gap-4">
-                      {editProjectForm.imageUrl ? (
-                        <div className="relative">
-                          <Image src={editProjectForm.imageUrl} alt="Project preview" width={100} height={100} className="rounded object-cover" />
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            className="absolute -top-2 -right-2 h-6 w-6 p-0"
-                            onClick={() => setEditProjectForm({ ...editProjectForm, imageUrl: "" })}
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      ) : null}
-                      <Input type="file" accept="image/*" onChange={(e) => handleProjectImageUpload(e, true)} disabled={loading} />
+                    <Label>Project Images</Label>
+                    {(editProjectForm.imageUrls || []).length > 0 ? (
+                      <div className="grid grid-cols-3 gap-3">
+                        {(editProjectForm.imageUrls || []).map((url, index) => (
+                          <div key={`${url}-${index}`} className="relative">
+                            <Image src={url} alt={`Project preview ${index + 1}`} width={100} height={100} className="rounded object-cover w-full h-24" />
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              className="absolute -top-2 -right-2 h-6 w-6 p-0"
+                              onClick={() => removeProjectImage(index, true)}
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    ) : null}
+                    <div className="flex items-center gap-2">
+                      <Input type="file" multiple accept="image/*" onChange={(e) => handleProjectImageUpload(e, true)} disabled={loading} />
+                      {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
                     </div>
                   </div>
 
@@ -1488,22 +1611,27 @@ export default function AdminPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>News Image (Optional)</Label>
-                  <div className="flex items-center gap-4">
-                    {newNews.imageUrl ? (
-                      <div className="relative">
-                        <Image src={newNews.imageUrl} alt="News preview" width={100} height={100} className="rounded object-cover" />
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          className="absolute -top-2 -right-2 h-6 w-6 p-0"
-                          onClick={() => setNewNews({ ...newNews, imageUrl: "" })}
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    ) : null}
-                    <Input type="file" accept="image/*" onChange={(e) => handleNewsImageUpload(e)} disabled={loading} />
+                  <Label>News Images (Optional)</Label>
+                  {(newNews.imageUrls || []).length > 0 ? (
+                    <div className="grid grid-cols-3 gap-3">
+                      {(newNews.imageUrls || []).map((url, index) => (
+                        <div key={`${url}-${index}`} className="relative">
+                          <Image src={url} alt={`News preview ${index + 1}`} width={100} height={100} className="rounded object-cover w-full h-24" />
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            className="absolute -top-2 -right-2 h-6 w-6 p-0"
+                            onClick={() => removeNewsImage(index)}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
+                  <div className="flex items-center gap-2">
+                    <Input type="file" multiple accept="image/*" onChange={(e) => handleNewsImageUpload(e)} disabled={loading} />
+                    {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
                   </div>
                 </div>
 
@@ -1639,7 +1767,9 @@ export default function AdminPage() {
                                 summary: item.summary,
                                 date: item.date,
                                 category: item.category,
-                                imageUrl: item.imageUrl || "",
+                                imageUrls: (item.imageUrls && item.imageUrls.length > 0)
+                                  ? item.imageUrls
+                                  : (item.imageUrl ? [item.imageUrl] : []),
                                 link: item.link || "",
                                 linkLabel: item.linkLabel || "",
                                 isPinned: Boolean(item.isPinned),
@@ -1685,22 +1815,27 @@ export default function AdminPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label>News Image</Label>
-                    <div className="flex items-center gap-4">
-                      {editNewsForm.imageUrl ? (
-                        <div className="relative">
-                          <Image src={editNewsForm.imageUrl} alt="News preview" width={100} height={100} className="rounded object-cover" />
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            className="absolute -top-2 -right-2 h-6 w-6 p-0"
-                            onClick={() => setEditNewsForm({ ...editNewsForm, imageUrl: "" })}
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      ) : null}
-                      <Input type="file" accept="image/*" onChange={(e) => handleNewsImageUpload(e, true)} disabled={loading} />
+                    <Label>News Images</Label>
+                    {(editNewsForm.imageUrls || []).length > 0 ? (
+                      <div className="grid grid-cols-3 gap-3">
+                        {(editNewsForm.imageUrls || []).map((url, index) => (
+                          <div key={`${url}-${index}`} className="relative">
+                            <Image src={url} alt={`News preview ${index + 1}`} width={100} height={100} className="rounded object-cover w-full h-24" />
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              className="absolute -top-2 -right-2 h-6 w-6 p-0"
+                              onClick={() => removeNewsImage(index, true)}
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    ) : null}
+                    <div className="flex items-center gap-2">
+                      <Input type="file" multiple accept="image/*" onChange={(e) => handleNewsImageUpload(e, true)} disabled={loading} />
+                      {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
                     </div>
                   </div>
 
@@ -1872,6 +2007,69 @@ export default function AdminPage() {
                     Add mandate
                   </Button>
                 </div>
+
+                {selectedMandateId ? (
+                  <div className="border-t pt-4 mt-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-medium text-gray-700">Edit selected mandate</p>
+                      {!editingMandateId ? (
+                        <Button size="sm" variant="outline" onClick={handleStartEditMandate} disabled={loading}>
+                          <Edit className="h-4 w-4 mr-1" />
+                          Edit mandate
+                        </Button>
+                      ) : null}
+                    </div>
+
+                    {editingMandateId ? (
+                      <div className="space-y-3">
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                          <Input
+                            placeholder="Mandate name"
+                            value={editMandateForm.name}
+                            onChange={(e) => setEditMandateForm({ ...editMandateForm, name: e.target.value })}
+                          />
+                          <Input
+                            type="number"
+                            placeholder="Start year"
+                            value={editMandateForm.startYear === "" ? "" : editMandateForm.startYear}
+                            onChange={(e) => setEditMandateForm({ ...editMandateForm, startYear: e.target.value === "" ? "" : Number(e.target.value) })}
+                          />
+                          <Input
+                            type="number"
+                            placeholder="End year"
+                            value={editMandateForm.endYear === "" ? "" : editMandateForm.endYear}
+                            onChange={(e) => setEditMandateForm({ ...editMandateForm, endYear: e.target.value === "" ? "" : Number(e.target.value) })}
+                          />
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              id="edit-mandate-current"
+                              checked={editMandateForm.isCurrent}
+                              onChange={(e) => setEditMandateForm({ ...editMandateForm, isCurrent: e.target.checked })}
+                            />
+                            <Label htmlFor="edit-mandate-current" className="text-sm">Current</Label>
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button size="sm" onClick={handleUpdateMandate} disabled={loading || !editMandateForm.name.trim()}>
+                            Save mandate
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              setEditingMandateId(null)
+                              setEditMandateForm({ name: "", startYear: "", endYear: "", isCurrent: false })
+                            }}
+                            disabled={loading}
+                          >
+                            Cancel
+                          </Button>
+                        </div>
+                      </div>
+                    ) : null}
+                  </div>
+                ) : null}
               </CardContent>
             </Card>
 
@@ -2180,27 +2378,33 @@ export default function AdminPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Award Picture</Label>
-                  <div className="flex items-center gap-4">
-                    {newAward.imageUrl ? (
-                      <div className="relative">
-                        <Image src={newAward.imageUrl} alt="Preview" width={100} height={100} className="rounded object-cover" />
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          className="absolute -top-2 -right-2 h-6 w-6 p-0"
-                          onClick={() => setNewAward({ ...newAward, imageUrl: "" })}
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    ) : null}
+                  <Label>Award Pictures</Label>
+                  {(newAward.imageUrls || []).length > 0 ? (
+                    <div className="grid grid-cols-3 gap-3">
+                      {(newAward.imageUrls || []).map((url, index) => (
+                        <div key={`${url}-${index}`} className="relative">
+                          <Image src={url} alt={`Award preview ${index + 1}`} width={100} height={100} className="rounded object-cover w-full h-24" />
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            className="absolute -top-2 -right-2 h-6 w-6 p-0"
+                            onClick={() => removeAwardImage(index)}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
+                  <div className="flex items-center gap-2">
                     <Input
                       type="file"
+                      multiple
                       accept="image/*"
                       onChange={handleAwardImageUpload}
                       disabled={loading}
                     />
+                    {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
                   </div>
                 </div>
                 <Button onClick={handleAddAward} disabled={loading}>
@@ -2219,8 +2423,8 @@ export default function AdminPage() {
                   {awards.map((award) => (
                     <div key={award._id} className="border rounded-lg p-4 flex items-center justify-between gap-4">
                       <div className="flex items-center gap-4">
-                        {award.imageUrl ? (
-                          <Image src={award.imageUrl} alt={award.title} width={60} height={60} className="rounded object-cover" />
+                        {(award.imageUrls?.[0] || award.imageUrl) ? (
+                          <Image src={award.imageUrls?.[0] || award.imageUrl || "/placeholder.svg"} alt={award.title} width={60} height={60} className="rounded object-cover" />
                         ) : (
                           <div className="w-16 h-16 rounded bg-gray-200 flex items-center justify-center p-4">
                             <Award className="h-8 w-8 text-gray-400" />

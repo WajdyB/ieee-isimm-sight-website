@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react"
 import Image from "next/image"
+import { ChevronLeft, ChevronRight } from "lucide-react"
+import { Button } from "@/components/ui/button"
 import { getAwards } from "@/lib/api"
 
 interface AwardItem {
@@ -9,7 +11,59 @@ interface AwardItem {
   title: string
   year: number
   description: string
+  imageUrls?: string[]
   imageUrl?: string
+}
+
+function AwardImageCarousel({ images, title, year }: { images: string[]; title: string; year: number }) {
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const safeImages = images.length > 0 ? images : ["/placeholder.svg"]
+
+  const goPrev = () => {
+    setCurrentIndex((prev) => (prev - 1 + safeImages.length) % safeImages.length)
+  }
+
+  const goNext = () => {
+    setCurrentIndex((prev) => (prev + 1) % safeImages.length)
+  }
+
+  return (
+    <div className="relative overflow-hidden bg-gray-50 aspect-square">
+      <Image
+        src={safeImages[currentIndex]}
+        alt={title}
+        fill
+        className="object-contain object-center p-4 group-hover:scale-105 transition-transform duration-300"
+      />
+
+      {safeImages.length > 1 ? (
+        <>
+          <Button
+            type="button"
+            size="icon"
+            variant="secondary"
+            className="absolute left-2 top-1/2 -translate-y-1/2 h-8 w-8"
+            onClick={goPrev}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <Button
+            type="button"
+            size="icon"
+            variant="secondary"
+            className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8"
+            onClick={goNext}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </>
+      ) : null}
+
+      <div className="absolute top-4 right-4 bg-red-700 text-white px-3 py-1 rounded-full text-sm font-semibold">
+        {year}
+      </div>
+    </div>
+  )
 }
 
 export default function AwardsPage() {
@@ -32,11 +86,6 @@ export default function AwardsPage() {
     }
     load()
   }, [])
-
-  const getImageSrc = (award: AwardItem) => {
-    if (award.imageUrl) return award.imageUrl
-    return "/placeholder.svg"
-  }
 
   return (
     <div className="min-h-screen">
@@ -70,17 +119,11 @@ export default function AwardsPage() {
                   key={award._id}
                   className="bg-white rounded-xl shadow-lg overflow-hidden group hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2"
                 >
-                  <div className="relative overflow-hidden bg-gray-50 aspect-square">
-                    <Image
-                      src={getImageSrc(award)}
-                      alt={award.title}
-                      fill
-                      className="object-contain object-center p-4 group-hover:scale-105 transition-transform duration-300"
-                    />
-                    <div className="absolute top-4 right-4 bg-red-700 text-white px-3 py-1 rounded-full text-sm font-semibold">
-                      {award.year}
-                    </div>
-                  </div>
+                  <AwardImageCarousel
+                    images={award.imageUrls && award.imageUrls.length > 0 ? award.imageUrls : award.imageUrl ? [award.imageUrl] : []}
+                    title={award.title}
+                    year={award.year}
+                  />
                   <div className="p-6">
                     <h3 className="text-xl font-semibold text-gray-900 mb-2 group-hover:text-red-700 transition-colors duration-200">
                       {award.title}

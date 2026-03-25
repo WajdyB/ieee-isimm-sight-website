@@ -25,7 +25,7 @@ export interface ProjectData {
   date: string
   projectType: ProjectType
   customType?: string
-  imageUrl?: string
+  imageUrls?: string[]
   proposalFormUrl: string
   status: ProjectStatus
 }
@@ -43,7 +43,7 @@ export interface NewsData {
   summary: string
   date: string
   category: NewsCategory
-  imageUrl?: string
+  imageUrls?: string[]
   link?: string
   linkLabel?: string
   isPinned?: boolean
@@ -129,6 +129,18 @@ export async function createMandate(data: { name: string; startYear: number; end
   return response.json()
 }
 
+export async function updateMandate(
+  id: string,
+  data: Partial<{ name: string; startYear: number; endYear: number; isCurrent: boolean }>
+) {
+  const response = await fetch(`/api/mandates/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  })
+  return response.json()
+}
+
 // Excom API
 export async function getExcom(mandateId?: string) {
   const url = mandateId ? `/api/excom?mandate=${mandateId}` : '/api/excom'
@@ -197,7 +209,7 @@ export async function getAwards() {
   return response.json()
 }
 
-export async function createAward(data: { title: string; year: number; description?: string; imageUrl?: string }) {
+export async function createAward(data: { title: string; year: number; description?: string; imageUrls?: string[] }) {
   const response = await fetch('/api/awards', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -206,7 +218,7 @@ export async function createAward(data: { title: string; year: number; descripti
   return response.json()
 }
 
-export async function updateAward(id: string, data: Partial<{ title: string; year: number; description: string; imageUrl: string }>) {
+export async function updateAward(id: string, data: Partial<{ title: string; year: number; description: string; imageUrls: string[] }>) {
   const response = await fetch(`/api/awards/${id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },

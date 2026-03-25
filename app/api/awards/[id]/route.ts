@@ -2,6 +2,18 @@ import { NextRequest, NextResponse } from "next/server"
 import { getDb } from "@/lib/mongodb"
 import { ObjectId } from "mongodb"
 
+const isValidImageUrl = (value: string) => /^https?:\/\//i.test(value) || value.startsWith("/")
+const normalizeImageUrls = (value: unknown): string[] => {
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => item?.toString?.().trim() ?? "")
+      .filter((item) => item.length > 0)
+  }
+
+  const single = value?.toString?.().trim?.() ?? ""
+  return single ? [single] : []
+}
+
 type Context = { params: Promise<{ id: string }> }
 
 export async function GET(request: NextRequest, context: Context) {
@@ -33,13 +45,22 @@ export async function PUT(request: NextRequest, context: Context) {
     if (!id) return NextResponse.json({ success: false, message: "Invalid id" }, { status: 400 })
 
     const body = await request.json()
-    const { title, year, description, imageUrl } = body
+    const { title, year, description, imageUrls, imageUrl } = body
 
     const update: Record<string, unknown> = { updatedAt: new Date() }
     if (title !== undefined) update.title = title
     if (year !== undefined) update.year = Number(year)
     if (description !== undefined) update.description = description
-    if (imageUrl !== undefined) update.imageUrl = imageUrl
+    if (imageUrls !== undefined || imageUrl !== undefined) {
+      const normalizedImageUrls = normalizeImageUrls(imageUrls ?? imageUrl)
+      if (normalizedImageUrls.some((value) => !isValidImageUrl(value))) {
+        return NextResponse.json(
+          { success: false, message: "Each image URL must be a valid URL or internal path" },
+          { status: 400 }
+        )
+      }
+      update.imageUrls = normalizedImageUrls
+    }
 
     const db = await getDb()
     const result = await db.collection("awards").findOneAndUpdate(

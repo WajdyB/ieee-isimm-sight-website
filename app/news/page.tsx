@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { Calendar, Loader2, Megaphone, Pin, Search } from "lucide-react"
+import { Calendar, ChevronLeft, ChevronRight, Handshake, Loader2, Megaphone, Pin, Search, Sparkles, Target } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -22,6 +22,7 @@ interface NewsItem {
     | "Partnership"
     | "Call for Volunteers"
     | "Event Update"
+  imageUrls?: string[]
   imageUrl?: string
   link?: string
   linkLabel?: string
@@ -30,6 +31,48 @@ interface NewsItem {
   deadlineDate?: string
   createdAt?: string
   updatedAt?: string
+}
+
+function NewsImageCarousel({ images, title }: { images: string[]; title: string }) {
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const safeImages = images.length > 0 ? images : ["/placeholder.svg"]
+
+  const goPrev = () => {
+    setCurrentIndex((prev) => (prev - 1 + safeImages.length) % safeImages.length)
+  }
+
+  const goNext = () => {
+    setCurrentIndex((prev) => (prev + 1) % safeImages.length)
+  }
+
+  return (
+    <div className="relative h-48 w-full overflow-hidden rounded-t-xl">
+      <Image src={safeImages[currentIndex]} alt={title} fill className="object-cover" />
+
+      {safeImages.length > 1 ? (
+        <>
+          <Button
+            type="button"
+            size="icon"
+            variant="secondary"
+            className="absolute left-2 top-1/2 -translate-y-1/2 h-8 w-8"
+            onClick={goPrev}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <Button
+            type="button"
+            size="icon"
+            variant="secondary"
+            className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8"
+            onClick={goNext}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </>
+      ) : null}
+    </div>
+  )
 }
 
 const categoryStyles: Record<NewsItem["category"], string> = {
@@ -45,14 +88,26 @@ const newsIdeaCards = [
   {
     title: "Opportunities",
     description: "Scholarships, calls for participation, grants, and registrations for SIGHT-related activities.",
+    icon: Target,
+    chip: "Apply & Participate",
+    accent: "from-emerald-100 to-emerald-50",
+    iconAccent: "bg-emerald-100 text-emerald-700",
   },
   {
     title: "Impact Stories",
     description: "Field results, beneficiary outcomes, and real community impact from your projects.",
+    icon: Sparkles,
+    chip: "Real Outcomes",
+    accent: "from-violet-100 to-violet-50",
+    iconAccent: "bg-violet-100 text-violet-700",
   },
   {
     title: "Partnership Updates",
     description: "Collaborations with NGOs, chapters, universities, and ecosystem stakeholders.",
+    icon: Handshake,
+    chip: "Collaborations",
+    accent: "from-amber-100 to-amber-50",
+    iconAccent: "bg-amber-100 text-amber-700",
   },
 ]
 
@@ -136,16 +191,32 @@ export default function NewsPage() {
       <section className="py-10 bg-white/80 backdrop-blur-sm border-b">
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-3 gap-4">
-            {newsIdeaCards.map((idea) => (
-              <Card key={idea.title} className="border-red-100">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg">{idea.title}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-gray-600">{idea.description}</p>
-                </CardContent>
-              </Card>
-            ))}
+            {newsIdeaCards.map((idea) => {
+              const Icon = idea.icon
+
+              return (
+                <Card
+                  key={idea.title}
+                  className="group border-red-100 overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
+                >
+                  <div className={`h-2 w-full bg-gradient-to-r ${idea.accent}`} />
+                  <CardHeader className="pb-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className={`inline-flex h-11 w-11 items-center justify-center rounded-xl ${idea.iconAccent}`}>
+                        <Icon className="h-5 w-5" />
+                      </div>
+                      <span className="inline-flex rounded-full border border-red-200 bg-red-50 px-2.5 py-1 text-xs font-medium text-red-700">
+                        {idea.chip}
+                      </span>
+                    </div>
+                    <CardTitle className="text-lg mt-3 leading-tight">{idea.title}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <p className="text-sm text-gray-600 leading-relaxed">{idea.description}</p>
+                  </CardContent>
+                </Card>
+              )
+            })}
           </div>
         </div>
       </section>
@@ -205,11 +276,10 @@ export default function NewsPage() {
             <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
               {filteredNews.map((item) => (
                 <Card key={item._id} className="border-red-100 shadow-sm hover:shadow-lg transition-shadow duration-300">
-                  {item.imageUrl ? (
-                    <div className="relative h-48 w-full overflow-hidden rounded-t-xl">
-                      <Image src={item.imageUrl} alt={item.title} fill className="object-cover" />
-                    </div>
-                  ) : null}
+                  <NewsImageCarousel
+                    images={item.imageUrls && item.imageUrls.length > 0 ? item.imageUrls : item.imageUrl ? [item.imageUrl] : []}
+                    title={item.title}
+                  />
                   <CardHeader>
                     <div className="flex items-start justify-between gap-3">
                       <CardTitle className="text-xl leading-tight">{item.title}</CardTitle>

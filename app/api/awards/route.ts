@@ -1,6 +1,18 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getDb } from "@/lib/mongodb"
 
+const isValidImageUrl = (value: string) => /^https?:\/\//i.test(value) || value.startsWith("/")
+const normalizeImageUrls = (value: unknown): string[] => {
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => item?.toString?.().trim() ?? "")
+      .filter((item) => item.length > 0)
+  }
+
+  const single = value?.toString?.().trim?.() ?? ""
+  return single ? [single] : []
+}
+
 export async function GET() {
   try {
     const db = await getDb()
@@ -25,11 +37,19 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { title, year, description, imageUrl } = body
+    const { title, year, description, imageUrls, imageUrl } = body
 
     if (!title || !year) {
       return NextResponse.json(
         { success: false, message: "Missing required fields: title, year" },
+        { status: 400 }
+      )
+    }
+
+    const normalizedImageUrls = normalizeImageUrls(imageUrls ?? imageUrl)
+    if (normalizedImageUrls.some((value) => !isValidImageUrl(value))) {
+      return NextResponse.json(
+        { success: false, message: "Each image URL must be a valid URL or internal path" },
         { status: 400 }
       )
     }
@@ -40,7 +60,7 @@ export async function POST(request: NextRequest) {
       title,
       year: Number(year),
       description: description || "",
-      imageUrl: imageUrl || "",
+      imageUrls: normalizedImageUrls,
       createdAt: now,
       updatedAt: now,
     }

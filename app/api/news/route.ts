@@ -12,6 +12,16 @@ const ALLOWED_CATEGORIES = [
 
 const isValidUrl = (value: string) => /^https?:\/\//i.test(value)
 const isValidImageUrl = (value: string) => /^https?:\/\//i.test(value) || value.startsWith("/")
+const normalizeImageUrls = (value: unknown): string[] => {
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => item?.toString?.().trim() ?? "")
+      .filter((item) => item.length > 0)
+  }
+
+  const single = value?.toString?.().trim?.() ?? ""
+  return single ? [single] : []
+}
 
 export async function GET() {
   try {
@@ -39,7 +49,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { title, summary, date, category, imageUrl, link, linkLabel, isPinned, hasDeadline, deadlineDate } = body
+    const { title, summary, date, category, imageUrls, imageUrl, link, linkLabel, isPinned, hasDeadline, deadlineDate } = body
 
     if (!title || !summary || !date || !category) {
       return NextResponse.json(
@@ -63,10 +73,10 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const normalizedImageUrl = (imageUrl ?? "").toString().trim()
-    if (normalizedImageUrl && !isValidImageUrl(normalizedImageUrl)) {
+    const normalizedImageUrls = normalizeImageUrls(imageUrls ?? imageUrl)
+    if (normalizedImageUrls.some((value) => !isValidImageUrl(value))) {
       return NextResponse.json(
-        { success: false, message: "imageUrl must be a valid URL or internal path" },
+        { success: false, message: "Each image URL must be a valid URL or internal path" },
         { status: 400 }
       )
     }
@@ -87,7 +97,7 @@ export async function POST(request: NextRequest) {
       summary: summary.toString().trim(),
       date: date.toString(),
       category: category as (typeof ALLOWED_CATEGORIES)[number],
-      imageUrl: normalizedImageUrl,
+      imageUrls: normalizedImageUrls,
       link: normalizedLink,
       linkLabel: (linkLabel ?? "Learn More").toString().trim() || "Learn More",
       isPinned: Boolean(isPinned),

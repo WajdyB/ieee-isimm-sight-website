@@ -3,6 +3,16 @@ import { getDb } from "@/lib/mongodb"
 
 const ALLOWED_STATUS = ["Completed", "In Progress", "Planned"] as const
 const isValidImageUrl = (value: string) => /^https?:\/\//i.test(value) || value.startsWith("/")
+const normalizeImageUrls = (value: unknown): string[] => {
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => item?.toString?.().trim() ?? "")
+      .filter((item) => item.length > 0)
+  }
+
+  const single = value?.toString?.().trim?.() ?? ""
+  return single ? [single] : []
+}
 
 export async function GET() {
   try {
@@ -30,7 +40,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { title, description, date, projectType, customType, imageUrl, proposalFormUrl, status } = body
+    const { title, description, date, projectType, customType, imageUrls, imageUrl, proposalFormUrl, status } = body
 
     if (!title || !description || !date || !projectType || !proposalFormUrl || !status) {
       return NextResponse.json(
@@ -62,10 +72,10 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const normalizedImageUrl = (imageUrl ?? "").toString().trim()
-    if (normalizedImageUrl && !isValidImageUrl(normalizedImageUrl)) {
+    const normalizedImageUrls = normalizeImageUrls(imageUrls ?? imageUrl)
+    if (normalizedImageUrls.some((value) => !isValidImageUrl(value))) {
       return NextResponse.json(
-        { success: false, message: "imageUrl must be a valid URL or internal path" },
+        { success: false, message: "Each image URL must be a valid URL or internal path" },
         { status: 400 }
       )
     }
@@ -79,7 +89,7 @@ export async function POST(request: NextRequest) {
       projectType: projectType.toString(),
       customType: projectType === "Other" ? normalizedType : "",
       displayType: normalizedType,
-      imageUrl: normalizedImageUrl,
+      imageUrls: normalizedImageUrls,
       proposalFormUrl: normalizedProposalFormUrl,
       status: status as (typeof ALLOWED_STATUS)[number],
       createdAt: now,

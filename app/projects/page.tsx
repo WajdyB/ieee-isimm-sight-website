@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { Calendar, Filter, Loader2, Search } from "lucide-react"
+import { Calendar, ChevronLeft, ChevronRight, Filter, Loader2, Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -21,11 +21,54 @@ interface ProjectItem {
   projectType: string
   customType?: string
   displayType?: string
+  imageUrls?: string[]
   imageUrl?: string
   proposalFormUrl?: string
   status: ProjectStatus
   createdAt?: string
   updatedAt?: string
+}
+
+function ProjectImageCarousel({ images, title }: { images: string[]; title: string }) {
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const safeImages = images.length > 0 ? images : ["/placeholder.svg"]
+
+  const goPrev = () => {
+    setCurrentIndex((prev) => (prev - 1 + safeImages.length) % safeImages.length)
+  }
+
+  const goNext = () => {
+    setCurrentIndex((prev) => (prev + 1) % safeImages.length)
+  }
+
+  return (
+    <div className="relative h-48 w-full overflow-hidden rounded-t-xl">
+      <Image src={safeImages[currentIndex]} alt={title} fill className="object-cover" />
+
+      {safeImages.length > 1 ? (
+        <>
+          <Button
+            type="button"
+            size="icon"
+            variant="secondary"
+            className="absolute left-2 top-1/2 -translate-y-1/2 h-8 w-8"
+            onClick={goPrev}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <Button
+            type="button"
+            size="icon"
+            variant="secondary"
+            className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8"
+            onClick={goNext}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </>
+      ) : null}
+    </div>
+  )
 }
 
 const getStatusClasses = (status: ProjectStatus) => {
@@ -193,19 +236,16 @@ export default function ProjectsPage() {
             <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
               {filteredProjects.map((project) => {
                 const displayType = project.displayType || project.customType || project.projectType
+                const gallery =
+                  project.imageUrls && project.imageUrls.length > 0
+                    ? project.imageUrls
+                    : project.imageUrl
+                      ? [project.imageUrl]
+                      : []
 
                 return (
                   <Card key={project._id} className="border-red-100 shadow-sm hover:shadow-lg transition-shadow duration-300">
-                    {project.imageUrl ? (
-                      <div className="relative h-48 w-full overflow-hidden rounded-t-xl">
-                        <Image
-                          src={project.imageUrl}
-                          alt={project.title}
-                          fill
-                          className="object-cover"
-                        />
-                      </div>
-                    ) : null}
+                    <ProjectImageCarousel images={gallery} title={project.title} />
                     <CardHeader>
                       <div className="flex items-start justify-between gap-3">
                         <CardTitle className="text-xl leading-tight">{project.title}</CardTitle>
